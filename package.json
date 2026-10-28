@@ -9,7 +9,7 @@
     "check": "biome check .",
     "fix": "biome check --write .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests",
+    "test": "vitest run",
     "verify": "npm run check && npm run typecheck && npm test"
   },
   "devDependencies": {
@@ -17,5 +17,10 @@
     "@types/node": "^26.6.5",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "csv-parse": "^7.0.3",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
   }
 }

@@ -1,0 +1,49 @@
+# Reference data for reading the exports: each canonical value with the spellings it appears
+# under. Lookups ignore case, so `retail` already matches `Retail`. A value not listed here is
+# kept as exported and reported by the pipeline, never dropped.
+
+states:
+  OH: [Oh., Ohio]
+  IN: [Ind., Indiana]
+  MI: [Mich., Michigan]
+  KY: [Ky., Kentucky]
+
+industries:
+  Property Management: [Property Mgmt, Real Estate / Property]
+  Retail: []
+  Education: [K-12 / Higher Ed]
+  Manufacturing: [Industrial/Manufacturing]
+  Healthcare: [Health Care, Medical]
+  Logistics: [Logistics & Distribution]
+  Hospitality: [Hotels & Hospitality]
+
+# NetSuite records a service line on every invoice; QuickBooks only a free-text memo. Each
+# memo is assigned to the NetSuite service line that describes the same work. QuickBooks
+# credit memos name no service, so they get a line of their own.
+serviceLines:
+  Inspection & Testing:
+    - Inspection & testing - monthly
+    - Annual sprinkler inspection
+    - Fire pump annual test
+    - Quarterly fire alarm test
+    - Backflow test
+    - Extinguisher service
+    - Kitchen hood suppression service
+  Monitoring:
+    - Monitoring - monthly
+  Repair:
+    - Alarm panel repair
+    - Valve repair
+    - Sprinkler head replacement
+    - Pull station repair
+  Emergency Service:
+    - After-hours impairment response
+    - Emergency pipe break response
+    - Weekend alarm panel failure
+  Project/Install:
+    - Fire pump install
+    - Sprinkler retrofit - progress billing
+    - Alarm panel replacement project
+    - Suppression system install
+  Unallocated credit:
+    - Credit memo - billing adjustment

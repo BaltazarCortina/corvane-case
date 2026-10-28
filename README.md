@@ -4,7 +4,8 @@ A prototype that helps Corvane Fire & Safety Services and its private equity own
 questions: what is actually happening to revenue, which customers they are about to lose and why, and
 whether the numbers can be trusted.
 
-The build plan and its progress are in [docs/plan.md](docs/plan.md).
+The build plan and its progress are in [docs/plan.md](docs/plan.md), and the choices behind the numbers
+in [docs/decisions.md](docs/decisions.md).
 
 ## Run it
 

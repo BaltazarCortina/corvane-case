@@ -63,7 +63,7 @@ Planned layout:
 | `data/build/` | Pipeline output. Regenerated, not versioned |
 | `data/llm/` | LLM output. Versioned, because it costs money to produce |
 | `data/raw/` | The exports exactly as received. Never edited |
-| `docs/` | This plan |
+| `docs/` | This plan and the decisions behind the numbers |
 | `eval/` | The hand-labeled note sample |
 | `scripts/` | Command line entry points (pipeline, LLM, evaluation) |
 | `src/analysis/` | Billing metrics, risk and worklist, computed over the model |
@@ -71,6 +71,8 @@ Planned layout:
 | `src/llm/` | Note classification and customer stories, with their verifiers |
 | `src/pipeline/` | Parsing, customer resolution, the unified model and the data findings |
 | `src/server/` | The API |
+| `tests/` | Unit tests, mirroring `src/`, on small fixtures built for each case |
+| `tests/data/` | Invariants on the real exports: totals that must reconcile, rows that must all be accounted for |
 | `web/` | The React app |
 
 **Stack:** TypeScript end to end (the data is about 7,000 rows, no dataframe library needed), zod for
@@ -83,7 +85,7 @@ for lint and format.
 | # | Stage | Includes | Status |
 |---|---|---|---|
 | 1 | Scaffold | Tooling, raw exports, README and this plan | Done |
-| 2 | Parse the exports | Typed rows from the five files, reference mappings | |
+| 2 | Parse the exports | Typed rows from the five files, reference mappings | Done |
 | 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | |
 | 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | |
 | 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | |
@@ -106,7 +108,7 @@ the labels are not anchored on what the LLM said. The sample and the labels are 
 Every stage ends with `npm run verify` (lint, typecheck, tests) passing. A stage is done when its rules
 are tested on small fixtures built for each case, and when invariants hold on the real data (totals that
 must reconcile, rows that must all be accounted for). The resulting numbers are recorded in the log, as
-an outcome, not as a target.
+an outcome, not as a target. The choices a stage makes are added to [decisions.md](decisions.md).
 
 ### 1. Scaffold
 
@@ -318,3 +320,16 @@ amount of the rows it affects.
 ### 1. Scaffold
 
 Built the tooling, copied the exports and wrote this plan. `npm run verify` passes (no tests yet).
+
+### 2. Parse the exports
+
+Each export is read with its line numbers and checked for the columns the pipeline uses, then parsed
+into typed rows (`src/pipeline/`). Value parsers, reference lookups and each file's rules are tested on
+small fixtures; the real exports are checked for three invariants: every line is a parsed row or a known
+non-data line, QuickBooks invoices add up to the export's own TOTAL row, and the reference data covers
+every value.
+
+Outcome: 175 CRM records, 2,606 QuickBooks invoices (plus a repeated header and the TOTAL row of
+$37,389,362.29), 4,170 NetSuite invoices, 155 contracts and 263 notes. Exact duplicates: 45 NetSuite
+rows, each on the line right after its original, and 2 contracts. Credit memos: 60 in QuickBooks, 92 in
+NetSuite.
