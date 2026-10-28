@@ -1,0 +1,176 @@
+customer_id,company_name,industry,city,state,account_manager,created_date,status
+C-0204,Garrison Retail Group,Retail,Toledo,OH,L. Brennan,2020-11-10,Active
+C-0139,Whitcomb Realty Partners,Property Management,Toledo,OH,L. Brennan,04/08/2022,Active
+C-0827,Prairie View Surgical Centers,Healthcare,Cleveland,OH,,09/09/2023,Active
+C-0405,Delhaven Preparatory School,Education,Troy,MI,M. Okoro,04/11/2020,Inactive
+C-0121,Lakemont School District,Education,Cleveland,OH,,10/29/2022,Active
+C-0501,Merriam Warehousing,Logistics,Lansing,MI,A. Castillo,08/06/2023,Active
+C-0529,Selby Inns,Hospitality,Dayton,OH,L. Brennan,2023-07-07,Active
+C-0476, Orchard Academy,K-12 / Higher Ed,Fishers,IN,D. Hargrove,11/05/2021,Active
+C-0717,Ingram Industries,Manufacturing,Akron,OH,M. Okoro,09/20/2022,Active
+C-0376,Whitcomb Warehousing,Logistics & Distribution,Cleveland,OH,L. Brennan,10/30/2021,Active
+C-0353,Hollis Freight Services,logistics,Toledo,OH,M. Okoro,2023-12-17,Active
+C-0426,Ivydale Realty Partners,Real Estate / Property,Fort Wayne,IN,D. Hargrove,08/18/2025,Active
+C-0205,Hollis Commercial Properties,Property Management,Bowling Green,Ky.,L. Brennan,08/03/2023,Inactive
+C-0543,Kestrel Manufacturing,Manufacturing,Lansing,MI,M. Okoro,09/08/2020,Active
+C-0657,Tilden Retail Group,Retail,Cincinnati,OH,M. Okoro,2023-05-11,Active
+C-0272, Wexford Freight Services,Logistics,Cleveland,Oh.,,2020-11-10,Active
+C-0588,Sutter Hotels,Hospitality,Columbus,OH,L. Brennan,07/19/2022,Active
+C-0289,Glenrock Senior Living,Healthcare,Fort Wayne,IN,D. Hargrove,06/13/2020,Inactive
+C-0550,Bellmont College,Education,Grand Rapids,MI,M. Okoro,05/08/2023,Active
+C-0774,Stanwick Freight Services,Logistics,Grand Rapids,MI,M. Okoro,2019-06-23,Active
+C-0347,Bellmont Distribution Co,Logistics & Distribution,Ann Arbor,MI,,01/11/2021,Active
+C-0340,Driftwood Fabrication,Manufacturing,Lansing,MI,A. Castillo,03/19/2022,Active
+C-0298,Tilden Hospitality Group,Hospitality,Cleveland,OH,,04/13/2020,Active
+C-0643,Halloran Academy,Education,Dayton,OH,,2019-02-28,Active
+C-0534,Foxmoor Property Group,Property Management,Dayton,OH,L. Brennan,2025-05-14,Active
+C-0513,Larkin Senior Living,Healthcare,Akron,OH,L. Brennan,12/09/2023,Active
+C-0651,Birchfield Freight Services,Logistics,Carmel,IN,D. Hargrove,2022-06-18,Active
+C-0696,Oxley Freight Services,Logistics,Cleveland,OH,L. Brennan,2021-03-26,Inactive
+C-0462,Kessler Academy,Education,Lexington,KY,L. Brennan,2022-12-04,Active
+C-0639,Yorkshire Realty Partners,Real Estate / Property,Cincinnati,Ohio,M. Okoro,04/08/2021,Active
+C-0276,Juneway Retail Group,retail,Columbus,OH,M. Okoro,2019-01-24,Active
+C-0675,Ingram Property Group,Property Management,Bloomington,Indiana,,2022-01-05,Active
+C-0312,Lakemont Commercial Properties,Property Management,Carmel,IN,D. Hargrove,06/14/2021,Active
+C-0707,Linwood Property Management,Property Management,Columbus,OH,L. Brennan,2020-07-12,Active
+C-0634,Merriam Commercial Properties,Property Mgmt,Indianapolis,IN,D. Hargrove,06/25/2020,Active
+C-0141,Westmark Health Partners,Healthcare,Louisville,KY,L. Brennan,06/13/2021,inactive
+C-0290,Newbury Distribution Co,Logistics,Cleveland,Ohio,M. Okoro,11/15/2024,Active
+C-0372,Whitcomb College,Education,Columbus,OH,L. Brennan,2021-02-19,Active
+C-0266,Fenwick Logistics,Logistics & Distribution,Cleveland,OH,M. Okoro,2021-03-23,Active
+C-0160, Wexford Commercial Properties,property management,Akron,OH,L. Brennan,01/22/2021,Active
+C-0541,Kessler Hotels,Hospitality,Cincinnati,Oh.,L. Brennan,2024-01-05,Active
+C-0674,Northgate Market Group,Retail,Troy,Mich.,A. Castillo,06/03/2025,Active
+C-0175,Millbrook Manufacturing,Manufacturing,Cincinnati,OH,L. Brennan,2022-11-16,Active
+C-0739,Prairie View School District,K-12 / Higher Ed,Indianapolis,IN,D. Hargrove,02/26/2024,Active
+C-0293,Granville Inns,Hospitality,Fort Wayne,IN,D. Hargrove,12/11/2024,Active
+C-0623,Corbin Realty Partners,Property Management,Dayton,OH,L. Brennan,2022-01-06,Active
+C-0801,Rowan Property Group Co.,Property Management,Carmel,IN,D. Hargrove,2026-08-13,Active
+C-0795,"Ivydale Logistics, Inc.",logistics,Dayton,Ohio,M. Okoro,02/09/2025,Active
+C-0759,Redfield Resorts,Hospitality,Troy,Mich.,A. Castillo,2022-05-18,Active
+C-0760,Evanston Row Fabrication,Manufacturing,Bloomington,IN,D. Hargrove,10/29/2020,Active
+C-0191,Ironbridge Property Management,Property Management,Toledo,OH,L. Brennan,2021-11-06,Active
+C-0477,Halloran Preparatory School,Education,Carmel,IN,D. Hargrove,03/18/2023,Active
+C-0666,Fairview College,Education,Toledo,Oh.,L. Brennan,03/03/2025,Active
+C-0217,Corbin Stores Inc,Retail,Akron,Oh.,L. Brennan,02/26/2022,Active
+C-0116,Pemberton Realty Partners,Property Management,Kalamazoo,MI,M. Okoro,04/22/2021,Active
+C-0278,Thornbury Stores Inc,Retail,Cincinnati,Oh.,M. Okoro,06/25/2019,Active
+C-0815,Corbin School District LLC,Education,Toledo,Oh.,M. Okoro,02/22/2022,Active
+C-0102,Tamarack Medical Center,healthcare,Louisville,KY,L. Brennan,11/17/2019,Active
+C-0478,Hollis Industries,Manufacturing,Toledo,OH,L. Brennan,07/30/2019,Inactive
+C-0685,Northgate Logistics,Logistics,Louisville,KY,D. Hargrove,03/20/2019,Active
+C-0489,Delhaven Distribution Co,Logistics,Fishers,IN,D. Hargrove,02/21/2020,Active
+C-0323,Thornbury Property Group,Real Estate / Property,Toledo,OH,L. Brennan,04/27/2019,Active
+C-0250,Prairie View Realty Partners,Property Management,Bloomington,Ind.,D. Hargrove,2024-06-16,Active
+C-0663,Evanston Row Stores Inc,Retail,Columbus,OH,M. Okoro,11/05/2025,Active
+C-0352,Larkin Health Partners,Healthcare,Cincinnati,OH,L. Brennan,06/11/2020,Active
+C-0700,Tamarack Warehousing,Logistics,Lansing,Michigan,A. Castillo,07/09/2023,Active
+C-0392,Bellmont Medical Center,Healthcare,Cincinnati,OH,M. Okoro,2023-05-23,Active
+C-0240,Tamarack Commercial Properties,Property Management,Bloomington,IN,D. Hargrove,10/06/2021,inactive
+C-0176,Merriam Property Group,Property Management,Cincinnati,OH,M. Okoro,12/17/2023,Active
+C-0128,Oakhaven Clinic Group,Healthcare,Bloomington,IN,D. Hargrove,11/03/2019,Churned
+C-0704, Pemberton Shopping Centers,Retail,Akron,OH,M. Okoro,10/13/2021,Inactive
+C-0279,Prairie View Surgical Center,Health Care,Cleveland,OH,L. Brennan,2023-10-06,Active
+C-0587,Foxmoor Academy,Education,Dayton,OH,,07/09/2020,Active
+C-0593,Fenwick College,Education,Cleveland,Ohio,,12/07/2025,Active
+C-0784,Sutter Property Group,Property Management,Fort Wayne,IN,D. Hargrove,03/19/2021,Active
+C-0170,Carrow Market Group,Retail,Fishers,Ind.,D. Hargrove,06/24/2020,Active
+C-0710,Millbrook Health Partners,Healthcare,Toledo,OH,M. Okoro,02/14/2022,Active
+C-0632,Fenwick Manufacturing,Manufacturing,Columbus,OH,M. Okoro,2019-08-04,Active
+C-0754,Ironbridge Academy,Education,Fishers,Indiana,D. Hargrove,2019-07-16,Active
+C-0697,Ashgrove Precision Products,Manufacturing,Louisville,KY,D. Hargrove,01/01/2025,Active
+C-0365,Valewood Freight Services,Logistics,Columbus,OH,M. Okoro,2024-09-21,Active
+C-0316,Juneway Manufacturing,Manufacturing,Cincinnati,OH,M. Okoro,04/07/2025,Active
+C-0566, Bellmont Precision Products,manufacturing,Bloomington,IN,D. Hargrove,02/10/2026,Active
+C-0358,Elmhurst Resorts,Hotels & Hospitality,Cincinnati,OH,L. Brennan,2020-07-12,Active
+C-0819,TAMARACK WAREHOUSING,logistics,Lansing,MI,M. Okoro,2022-02-08,Active
+C-0579,Kestrel Industries,Manufacturing,Fishers,Indiana,D. Hargrove,12/13/2020,Active
+C-0449,Tamarack Property Group,property management,Carmel,Ind.,D. Hargrove,04/16/2020,Active
+C-0835,"Carrow Market Group, Inc.",Retail,Fishers,Indiana,D. Hargrove,2025-02-23,Active
+C-0329,Lakemont Logistics,Logistics,Indianapolis,IN,D. Hargrove,04/01/2022,Inactive
+C-0348,Oakhaven Preparatory School,Education,Lansing,MI,M. Okoro,2021-11-06,Active
+C-0576,Garrison Commercial Properties,Property Mgmt,Bowling Green,KY,,2022-11-26,Churned
+C-0371,Norcross Stores Inc,Retail,Cleveland,Oh.,M. Okoro,2023-06-05,Active
+C-0806,Linwood Property Grp,Property Management,Cleveland,Ohio,L. Brennan,11/25/2023,Active
+C-0336,Fenwick Inns,Hospitality,Dayton,OH,M. Okoro,2019-08-27,Active
+C-0716,Wexford Shopping Centers,Retail,Cincinnati,Ohio,L. Brennan,07/01/2022,Active
+C-0301,Alder Creek Manufacturing,Industrial/Manufacturing,Cincinnati,OH,L. Brennan,2024-08-15,Active
+C-0166,Juneway College,education,Fort Wayne,IN,D. Hargrove,2023-07-09,Active
+C-0648,Ridgeway Realty Partners,Property Mgmt,Carmel,Indiana,D. Hargrove,2020-09-11,Active
+C-0137,Westmark Distribution Co,Logistics,Columbus,OH,L. Brennan,09/16/2019,Active
+C-0436,Kessler Surgical Center,Health Care,Columbus,Oh.,M. Okoro,2023-11-21,Active
+C-0465,Juneway Precision Products,Manufacturing,Akron,OH,M. Okoro,01/28/2023,Active
+C-0442,Northgate Retail Group,Retail,Toledo,OH,M. Okoro,2023-07-20,Active
+C-0189,Tilden Property Group,Property Management,Columbus,OH,L. Brennan,12/01/2022,Churned
+C-0295,Glenrock Industries,Manufacturing,Bloomington,IN,D. Hargrove,05/31/2022,Active
+C-0452,Ashgrove Fabrication,Industrial/Manufacturing,Ann Arbor,MI,A. Castillo,02/09/2019,Active
+C-0475,Ridgeway Logistics,Logistics,Grand Rapids,Michigan,M. Okoro,05/06/2019,Active
+C-0258,Sutter Realty Partners,Property Management,Bloomington,IN,,2020-05-21,Active
+C-0660,Harlow Logistics,Logistics,Dayton,OH,L. Brennan,2026-05-21,Active
+C-0766,Wexford Manufacturing,Manufacturing,Troy,MI,A. Castillo,2022-11-26,Active
+C-0812,Ivydale Stores Inc.,Retail,Grand Rapids,MI,M. Okoro,2020-12-10,Active
+C-0193,Elmhurst Health Partners,Healthcare,Akron,Ohio,M. Okoro,05/30/2020,inactive
+C-0712,Birchfield Distribution Co,logistics,Carmel,IN,D. Hargrove,2023-12-03,Active
+C-0509,Whitcomb Precision Products,Manufacturing,Cincinnati,OH,L. Brennan,07/14/2022,Active
+C-0796,GRANVILLE INNS,Hotels & Hospitality,Fort Wayne,IN,D. Hargrove,05/08/2023,Active
+C-0324,Edgerton Realty Partners,Real Estate / Property,Troy,MI,,01/24/2022,Active
+C-0450,Pemberton Market Group,Retail,Dayton,Oh.,M. Okoro,2020-07-03,Active
+C-0268,Valewood Realty Partners,Property Management,Toledo,OH,L. Brennan,09/11/2020,Active
+C-0282,Garrison Preparatory School,Education,Cincinnati,OH,M. Okoro,2023-05-19,Active
+C-0355,Redfield Senior Living,Healthcare,Bowling Green,Ky.,D. Hargrove,2020-10-14,Active
+C-0786,Linwood Property Group,Property Management,Cleveland,Oh.,L. Brennan,08/02/2019,Active
+C-0701,Thornbury Manufacturing,Manufacturing,Carmel,IN,D. Hargrove,02/17/2020,Active
+C-0703,Selby Senior Living,Healthcare,Fort Wayne,Indiana,D. Hargrove,2023-04-05,Active
+C-0608,Foxmoor Retail Group,Retail,Lansing,Mich.,A. Castillo,10/01/2019,Active
+C-0168,Delhaven Retail Group,Retail,Akron,OH,L. Brennan,2019-10-04,Inactive
+C-0429,Ironbridge Commercial Properties,property management,Kalamazoo,MI,A. Castillo,2019-10-01,Active
+C-0715,Wexford Market Group,Retail,Troy,MI,A. Castillo,07/02/2020,Churned
+C-0174,Yorkshire Preparatory School,Education,Cincinnati,OH,L. Brennan,12/07/2022,Active
+C-0840,Fenwick Manufacturing.,Manufacturing,Columbus,OH,L. Brennan,07/25/2023,Active
+C-0406,Oakhaven Manufacturing,Industrial/Manufacturing,Toledo,Oh.,L. Brennan,2021-07-19,Active
+C-0537,Northgate Property Group,Real Estate / Property,Columbus,OH,L. Brennan,07/16/2019,Active
+C-0540,Prescott Hotels,hospitality,Cincinnati,OH,M. Okoro,2022-07-16,Active
+C-0101,Newbury Preparatory School,Education,Toledo,Oh.,M. Okoro,2019-08-15,Active
+C-0287,Delhaven Stores Inc,retail,Fort Wayne,IN,D. Hargrove,2020-11-09,Active
+C-0752,Rowan Commercial Properties,Real Estate / Property,Lansing,MI,,2019-08-16,Active
+C-0364,Yorkshire Stores Inc,Retail,Cleveland,Oh.,,11/10/2021,Active
+C-0198,Ironbridge Preparatory School,Education,Cleveland,OH,M. Okoro,01/21/2020,Active
+C-0308,Cedar Point Realty Partners,Property Management,Indianapolis,Ind.,D. Hargrove,09/10/2020,Active
+C-0138,Foxmoor Health Partners,Healthcare,Cincinnati,OH,,01/17/2019,Active
+C-0619,Ivydale Stores Inc,retail,Grand Rapids,MI,M. Okoro,03/14/2021,Active
+C-0119,Pemberton Commercial Properties,Property Management,Ann Arbor,MI,A. Castillo,04/13/2019,Active
+C-0315,Hollis School District,Education,Cleveland,OH,,07/03/2022,Active
+C-0243,Stanwick Property Group,property management,Bloomington,IN,D. Hargrove,12/25/2021,Active
+C-0546,Rowan Property Group,Property Management,Carmel,IN,D. Hargrove,12/12/2021,Active
+C-0320, Oakhaven Surgical Center,Healthcare,Cleveland,OH,M. Okoro,08/01/2023,Active
+C-0384,Selby Distribution Co,Logistics,Lansing,Michigan,M. Okoro,2020-06-24,Active
+C-0831,"Valewood Freight Services, Inc.",Logistics,Columbus,OH,M. Okoro,2024-05-17,Active
+C-0225, Ingram Market Group,Retail,Troy,MI,M. Okoro,10/20/2022,Active
+C-0202, Ridgeway Fabrication,Manufacturing,Fort Wayne,IN,D. Hargrove,01/25/2019,Active
+C-0493,Ridgeway Hotels,Hospitality,Fort Wayne,IN,D. Hargrove,05/11/2019,Active
+C-0745,Glenrock Commercial Properties,Property Management,Fishers,IN,D. Hargrove,04/28/2019,Active
+C-0656,Brightwell Hotels,Hospitality,Ann Arbor,MI,A. Castillo,2022-03-08,Active
+C-0618,Orchard College,Education,Troy,Michigan,M. Okoro,06/01/2026,Active
+C-0746,Kessler Property Group,Property Management,Carmel,IN,D. Hargrove,11/19/2020,Active
+C-0214,Orchard Clinic Group,Medical,Louisville,Ky.,D. Hargrove,03/13/2019,Active
+C-0400,Valewood Manufacturing,Manufacturing,Lansing,Mich.,M. Okoro,11/01/2021,Active
+C-0375,Upland Preparatory School,Education,Fort Wayne,IN,D. Hargrove,11/02/2019,Active
+C-0144,Oakhaven Medical Center,Healthcare,Bloomington,IN,D. Hargrove,08/21/2019,Active
+C-0394,Upland Realty Partners,Property Management,Columbus,OH,L. Brennan,12/14/2022,Active
+C-0222,Merriam Market Group,Retail,Toledo,OH,L. Brennan,2019-03-30,Active
+C-0381,Westmark Hospitality Group,Hospitality,Dayton,Oh.,M. Okoro,2022-01-08,Active
+C-0744,Ingram Resorts,Hospitality,Louisville,KY,D. Hargrove,2022-02-20,Active
+C-0661, Edgerton Commercial Properties,Property Management,Indianapolis,Indiana,D. Hargrove,02/08/2024,Active
+C-0755,Garrison Fabrication,Manufacturing,Bloomington,Ind.,D. Hargrove,2023-10-31,Active
+C-0714,Ingram Academy,Education,Bloomington,IN,D. Hargrove,2020-01-21,Active
+C-0808,YORKSHIRE STORES INC,Retail,Cleveland,OH,M. Okoro,2023-04-08,Active
+C-0758,Halloran Industries,Manufacturing,Grand Rapids,MI,M. Okoro,05/10/2022,Inactive
+C-0502,Thornbury Industries,Manufacturing,Troy,MI,M. Okoro,10/30/2019,inactive
+C-0610,Westmark Market Group,Retail,Troy,MI,M. Okoro,2022-01-01,Active
+C-0421,Upland Retail Group,Retail,Ann Arbor,MI,A. Castillo,2019-05-07,Active
+C-0194,Merriam Health Partners,Healthcare,Grand Rapids,MI,M. Okoro,02/24/2022,Active
+C-0132,Oakhaven Realty Partners,Property Management,Dayton,OH,L. Brennan,2019-08-23,Active
+C-0188,Ivydale Logistics,logistics,Dayton,OH,M. Okoro,09/29/2020,Active
+C-0437,Prairie View Health Partners,Healthcare,Fort Wayne,IN,D. Hargrove,2022-05-03,Active
+C-0125,Halloran Health Partners,Healthcare,Indianapolis,IN,D. Hargrove,03/02/2023,Active
+C-0251,Corbin School District,Education,Toledo,Oh.,M. Okoro,04/06/2021,Active
