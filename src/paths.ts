@@ -7,6 +7,7 @@ const root = fileURLToPath(new URL('..', import.meta.url));
 export const paths = {
   raw: `${root}data/raw`,
   build: `${root}data/build`,
+  eval: `${root}eval`,
   reference: `${root}config/reference.yml`,
   assumptions: `${root}config/assumptions.yml`,
 };

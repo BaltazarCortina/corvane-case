@@ -89,21 +89,22 @@ for lint and format.
 | 2 | Parse the exports | Typed rows from the five files, reference mappings | Done |
 | 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | Done |
 | 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | Done |
-| 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge || Done |
+| 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | Done |
 | 6 | Data findings | Assumptions and observations, impact of each assumption | Done |
-| 7 | Note classification | LLM reading each note, with quote verification | |
-| 8 | Evaluation | Hand labels, keyword baseline, cross-check with billing | |
-| 9 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | |
-| 10 | Customer stories | LLM story per worklist customer, with a citation verifier | |
-| 11 | API, app shell, billing screen | Server, React layout, the billing screen | |
-| 12 | Worklist and customer panel | The worklist and the customer detail | |
-| 13 | Data screen | Data health, reconciliation and AI checks | |
-| 14 | Summary screen | The three answers on one screen | |
-| 15 | Fine-tuning | Manual assignments and exceptions for single cases | |
-| 16 | README | How to run it, how it works, AI tools used, next steps | |
+| 7 | Evaluation set | Keyword screen, stratified sample of notes, hand labels || Done |
+| 8 | Note classification | LLM reading each note, with quote verification | |
+| 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing | |
+| 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | |
+| 11 | Customer stories | LLM story per worklist customer, with a citation verifier | |
+| 12 | API, app shell, billing screen | Server, React layout, the billing screen | |
+| 13 | Worklist and customer panel | The worklist and the customer detail | |
+| 14 | Data screen | Data health, reconciliation and AI checks | |
+| 15 | Summary screen | The three answers on one screen | |
+| 16 | Fine-tuning | Manual assignments and exceptions for single cases | |
+| 17 | README | How to run it, how it works, AI tools used, next steps | |
 
-**Hand labels.** The note sample for evaluation is drawn and labeled by hand **before stage 7 runs**, so
-the labels are not anchored on what the LLM said. The sample and the labels are committed with stage 8.
+**Evaluation first.** The set the LLM is judged against (stage 7) is drawn and labeled by hand before the
+classifier runs (stage 8), so the labels are not anchored on what the LLM said.
 
 ## Stages
 
@@ -139,7 +140,7 @@ row; every line of every file is either a parsed row or a recognized non-data li
 
 - `config/assumptions.yml`, validated with zod: an unknown value fails with its exact path. Each
   assumption is a rule that can be turned off, with exceptions for single cases and assignments for
-  links no rule can make. Only the general rules are set here; single cases come in stage 15.
+  links no rule can make. Only the general rules are set here; single cases come in stage 16.
 - Name normalization: case, punctuation, `&` and trailing legal suffixes (Inc, LLC, Corp, Ltd). Nothing
   fuzzier: "Halloran Academy" and "Halloran Health Partners" stay distinct.
 - Duplicate CRM records: same normalized name **and** same city and state are merged; otherwise they are
@@ -208,7 +209,20 @@ to the change between the two periods.
 **Done when:** tests per detector; flipping an invoice assumption changes the period total by exactly the
 amount of the rows it affects.
 
-### 7. Note classification
+### 7. Evaluation set
+
+- A keyword screen: a generic list of words that often come with a customer at risk (terminate,
+  competitor, missed, dispute...), written for any account notes, not for these.
+- The hand-labeled sample, drawn in a way that works on any CRM: the notes are split by the keyword
+  screen, and 20 are drawn at random from each group with a fixed seed. A plain random sample would
+  hold too few notes with risk to measure how many the LLM finds.
+- The labels, set by hand before the classifier runs, following the risk scale of stage 8: risk level,
+  reasons and note type. Instructions in `eval/README.md`.
+
+**Done when:** tests show the sample is reproducible and drawn from both groups; every note in the
+sample has a valid label.
+
+### 8. Note classification
 
 - One LLM call per note, without customer context, so each answer can be checked against its note.
 - Output (zod schema): risk level, reasons, note type, a verbatim quote and a one-line summary.
@@ -223,18 +237,18 @@ amount of the rows it affects.
 
 **Done when:** every note classified; every quote verbatim.
 
-### 8. Evaluation
+### 9. Evaluation
 
-- The hand-labeled sample: one note per distinct note template, so every phrasing is covered. Accuracy
-  on it measures how each kind of note is handled, not the share of all notes right.
 - Scores against the hand labels: exact risk level, precision and recall on "at risk", reasons.
-- A keyword baseline scored the same way; where it disagrees with the LLM, the note is reviewed.
+  Reported per group of the sample and weighted back by the size of each group.
+- The keyword screen as a baseline, scored the same way; where it disagrees with the LLM, the note is
+  reviewed.
 - Cross-check with billing: did customers flagged at risk bill less?
-- A report in `data/llm/` that the app shows in stage 13.
+- A report in `data/llm/` that the app shows in stage 14.
 
 **Done when:** the report runs from the hand labels; the disagreements have been read.
 
-### 9. Risk and worklist
+### 10. Risk and worklist
 
 - Current status: no invoice in 90 days means the customer stopped billing.
 - Two separate dimensions:
@@ -255,7 +269,7 @@ amount of the rows it affects.
 
 **Done when:** tests for the matrix, the group rules and their order.
 
-### 10. Customer stories
+### 11. Customer stories
 
 - For customers in Act now, Monitor and Win back that have notes.
 - The LLM gets the notes in order plus numbered facts computed by code (billing by service line, the
@@ -266,7 +280,7 @@ amount of the rows it affects.
 
 **Done when:** tests for the verifier; stories generated and verified.
 
-### 11. API, app shell and billing screen
+### 12. API, app shell and billing screen
 
 - Hono API that reads the files in `data/build/` and `data/llm/` and serves them; it computes nothing.
 - React app with Vite and Tailwind: layout and navigation.
@@ -274,7 +288,7 @@ amount of the rows it affects.
   marked), breakdown by service line, the bridge with the customers behind each step. Definitions
   visible.
 
-### 12. Worklist and customer panel
+### 13. Worklist and customer panel
 
 - Worklist: the four groups, owner, reason, amount at stake, contract end; the auto-renewal toggle; why
   customers are at risk (reasons from the notes).
@@ -282,24 +296,24 @@ amount of the rows it affects.
   timeline of notes and monthly billing, the story with readable citations, the data findings that
   touch this customer.
 
-### 13. Data screen
+### 14. Data screen
 
 - Status first: do the exports reconcile, how many assumptions await confirmation, the date of the data.
 - Pending with Corvane: unconfirmed assumptions with their impact.
 - The reconciliation from the exports to the numbers in the app.
 - Observations: those worth checking first, the informative ones collapsed. Notes linked to no customer
-  are split into prospects (by the note type the LLM reads in stage 7) and names still to resolve, each
+  are split into prospects (by the note type the LLM reads in stage 8) and names still to resolve, each
   with its risk level. Definitions, including the note risk scale.
 - How the AI was checked: evaluation scores, quote and story verification results.
 
-### 14. Summary screen
+### 15. Summary screen
 
 - The three answers on one screen: net billings for the last complete half with and without atypical
   invoices, plus the 12-month line; Act now (customers and amount at stake) with up to ten of them;
   renewals; data status (do the exports reconcile, how many assumptions await confirmation). An
   18-month chart.
 
-### 15. Fine-tuning
+### 16. Fine-tuning
 
 - With the whole system visible, the single cases the rules cannot settle are decided by hand in
   `config/assumptions.yml`: assignments with their evidence (QuickBooks names that match no customer,
@@ -307,7 +321,7 @@ amount of the rows it affects.
   exceptions where a rule should not apply.
 - Each one shows its impact on the Data screen like any other assumption.
 
-### 16. README
+### 17. README
 
 - How to run it, how it works, the AI feature and how it is verified, the AI tools used and for what,
   and the next steps.
@@ -324,6 +338,8 @@ amount of the rows it affects.
 
 **Further iterations,** not built in this prototype:
 
+- Ongoing evaluation: label a few new notes at random every week, so the measured accuracy follows the
+  notes as they change, instead of resting on a single sample.
 - Atypical invoices measured against the customer's average month before each invoice (the previous 6
   or 12 months) instead of its whole history, so a customer that grows steadily is compared with its
   current size. Small effect with two and a half years of data; it grows with every export added.
@@ -428,3 +444,22 @@ half their value ($1.4M short), 6 customers billed over 1.5 times their contract
 still billing, 4 notes linked to no customer. The jump at the system change (+16.9%) is within the usual
 variation (−26.7% to +25.0%). Informative: 56 name variants, 20 QuickBooks memos, 5 atypical invoices, 15
 customers without an account manager, 7 CRM statuses contradicting billing.
+
+### 7. Evaluation set
+
+`src/eval/scale.ts` defines the scale a note is judged on, shared by the labels and the LLM.
+`src/eval/keywords.ts` is the keyword screen; `src/eval/sample.ts` draws 20 notes at random from each
+group it makes, with a fixed seed; `npm run eval:sample` writes them to `eval/label-sample.csv`, without
+the group, for labeling as `eval/labels.csv` (instructions in `eval/README.md`). `src/eval/labels.ts`
+reads the labels and fails on a value off the scale. Tests cover the screen, the draw (same seed, same
+sample, whatever the order of the notes; another seed, another sample; groups smaller than the sample)
+and the label checks; on the real data, the labels cover exactly the sample.
+
+Outcome: the screen flags 59 of the 263 notes. The sample has 40 notes, 20 from each group, with 24
+distinct texts once names are left aside. Labeled by hand: 27 none, 2 low, 8 medium and 3 high; reasons
+mostly service (10), then price and competitor (2 each); 38 customer notes, 1 internal and 1 prospect.
+A review against the written scale made two kinds of note consistent before the LLM ran: asking for a
+competitor's quote is competitive pressure (medium), and a deficiency list is repairs found on the
+customer's equipment, not a service failure (none). The fire marshal citations stay medium, with a
+comment that high is also defensible.
+

@@ -236,3 +236,31 @@ month a year later rose 25% with no system change.
 
 **Criterion.** Where the CRM says active and the customer has not billed in 90 days, or says inactive and
 it billed recently, the contradiction is listed. Billing decides whether a customer is active.
+
+## Judging the AI
+
+### Notes are judged on a scale defined by principle
+
+**Criterion.** High: the customer decided, or is acting, to end or reduce the relationship, or the
+conflict went beyond the account manager (a formal complaint, a lawyer, a regulator). Medium: a concrete
+problem or competitive pressure that can lead there if nobody acts. Low: minor or resolved friction.
+None: routine or positive. Defined by what each level means rather than by a list of cases from these
+notes, so it holds for notes nobody has seen yet. A person labeling and the LLM use the same scale, along
+with the reasons (service, price, competitor, billing, other) and the note type (customer, internal,
+prospect). It is a business definition: Corvane's account managers should validate it.
+
+### The labeled sample is stratified by a keyword screen
+
+**Criterion.** A plain random sample would hold few notes with risk, too few to tell how many the LLM
+finds. The notes are split by a generic list of words that often come with risk (terminate, competitor,
+missed, dispute...), and 20 are drawn at random from each group with a fixed seed. Scores are weighted
+back by the size of each group, so they still describe all the notes. Nothing in the method depends on
+how these notes were written, so it works on any CRM; and it does not depend on the LLM, so the sample is
+drawn and labeled before the LLM runs.
+
+### Labels are set by a person, before the LLM runs
+
+**Criterion.** An LLM checking another LLM is not an independent check, and a person who has seen the
+LLM's answer tends to agree with it. The labels are set by hand, without the group each note was drawn
+from, before the classifier exists. A label off the scale stops the evaluation instead of counting as a
+wrong answer.
