@@ -86,7 +86,7 @@ for lint and format.
 |---|---|---|---|
 | 1 | Scaffold | Tooling, raw exports, README and this plan | Done |
 | 2 | Parse the exports | Typed rows from the five files, reference mappings | Done |
-| 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | |
+| 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | Done |
 | 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | |
 | 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | |
 | 6 | Data findings | Assumptions and observations, impact of each assumption | |
@@ -98,7 +98,8 @@ for lint and format.
 | 12 | Worklist and customer panel | The worklist and the customer detail | |
 | 13 | Data screen | Data health, reconciliation and AI checks | |
 | 14 | Summary screen | The three answers on one screen | |
-| 15 | README | How to run it, how it works, AI tools used, next steps | |
+| 15 | Fine-tuning | Manual assignments and exceptions for single cases | |
+| 16 | README | How to run it, how it works, AI tools used, next steps | |
 
 **Hand labels.** The note sample for evaluation is drawn and labeled by hand **before stage 7 runs**, so
 the labels are not anchored on what the LLM said. The sample and the labels are committed with stage 8.
@@ -135,7 +136,9 @@ row; every line of every file is either a parsed row or a recognized non-data li
 
 ### 3. Resolve customers
 
-- `config/assumptions.yml`, validated with zod: an unknown value fails with its exact path.
+- `config/assumptions.yml`, validated with zod: an unknown value fails with its exact path. Each
+  assumption is a rule that can be turned off, with exceptions for single cases and assignments for
+  links no rule can make. Only the general rules are set here; single cases come in stage 15.
 - Name normalization: case, punctuation, `&` and trailing legal suffixes (Inc, LLC, Corp, Ltd). Nothing
   fuzzier: "Halloran Academy" and "Halloran Health Partners" stay distinct.
 - Duplicate CRM records: same normalized name **and** same city and state are merged; otherwise they are
@@ -143,10 +146,9 @@ row; every line of every file is either a parsed row or a recognized non-data li
   suffix, the earliest created date, and both account managers if they differ.
 - QuickBooks names and note names linked to customers; shortened note names accepted only when exactly
   one customer starts with those words (two or more).
-- Customer ids billed in NetSuite but missing from the CRM, and QuickBooks names matching no customer:
-  explicit assignments in config, with the evidence written next to each one. They take the QuickBooks
-  name, so no customer shows as "unknown".
-- Manual assignments override rules: if a person decided, that wins.
+- Customer ids billed in NetSuite but missing from the CRM become customers of their own; names no rule
+  links are listed as unmatched.
+- Assignments and exceptions are applied before the rules: if a person decided, that wins.
 
 **Done when:** tests for normalization, merging (including a pair that must not merge), shortened names
 and assignments; every CRM record, QuickBooks name, NetSuite id and note name is linked to one customer
@@ -194,9 +196,10 @@ to the change between the two periods.
   - **Observations** do not. Those with money involved or worth checking with Corvane come first:
     active contracts billing under 50% of their value, expired contracts still billing, customers billing
     well above their contract, and whether billing at the system change is within normal month-to-month
-    variation. The rest are informative: name variants, prospects, unmapped values, the QuickBooks memo
-    translation, atypical invoices, customers without an account manager, CRM status contradicting
-    billing.
+    variation, and notes linked to no customer, with the reason (no customer fits the name, or the
+    candidates it fits), since their content does not reach the risk analysis. The rest are
+    informative: name variants, unmapped values, the QuickBooks memo translation, atypical invoices,
+    customers without an account manager, CRM status contradicting billing.
 - Impact of each assumption: the pipeline runs again with the alternative policy and compares the
   headline metric, so there is no second copy of the logic to drift.
 
@@ -280,8 +283,9 @@ amount of the rows it affects.
 - Status first: do the exports reconcile, how many assumptions await confirmation, the date of the data.
 - Pending with Corvane: unconfirmed assumptions with their impact.
 - The reconciliation from the exports to the numbers in the app.
-- Observations: those worth checking first, the informative ones collapsed. Definitions, including the
-  note risk scale.
+- Observations: those worth checking first, the informative ones collapsed. Notes linked to no customer
+  are split into prospects (by the note type the LLM reads in stage 7) and names still to resolve, each
+  with its risk level. Definitions, including the note risk scale.
 - How the AI was checked: evaluation scores, quote and story verification results.
 
 ### 14. Summary screen
@@ -291,7 +295,15 @@ amount of the rows it affects.
   renewals; data status (do the exports reconcile, how many assumptions await confirmation). An
   18-month chart.
 
-### 15. README
+### 15. Fine-tuning
+
+- With the whole system visible, the single cases the rules cannot settle are decided by hand in
+  `config/assumptions.yml`: assignments with their evidence (QuickBooks names that match no customer,
+  paired with ids missing from the CRM by monthly amount, service mix and contract dates) and
+  exceptions where a rule should not apply.
+- Each one shows its impact on the Data screen like any other assumption.
+
+### 16. README
 
 - How to run it, how it works, the AI feature and how it is verified, the AI tools used and for what,
   and the next steps.
@@ -333,3 +345,21 @@ Outcome: 175 CRM records, 2,606 QuickBooks invoices (plus a repeated header and 
 $37,389,362.29), 4,170 NetSuite invoices, 155 contracts and 263 notes. Exact duplicates: 45 NetSuite
 rows, each on the line right after its original, and 2 contracts. Credit memos: 60 in QuickBooks, 92 in
 NetSuite.
+
+### 3. Resolve customers
+
+`config/assumptions.yml` holds the first two rules (duplicate customers and shortened note names), each
+with `applies`, `confirmed`, `basis` and optional exceptions, plus a list of manual assignments, empty
+for now. It is validated with zod: a wrong type, a missing field or a misspelled key fails with its path.
+`src/pipeline/resolve.ts` builds the customers and links every id and name to one of them, in this
+order: assignments, exact names, normalized names and, for notes only, unique shortened names. Rules,
+exceptions and assignments are tested on fixtures, including names that must not match ("Halloran
+Academy" against "Halloran Health Partners") and an ambiguous shortened name. On the real data, every id
+belongs to a customer, every name is linked or listed as unmatched, and every config entry points to
+something in the data.
+
+Outcome: 170 customers, 4 of them outside the CRM. 9 groups of duplicate CRM records, all in the same
+location and merged; 2 of them name different account managers. 187 of 191 QuickBooks names linked (147
+exact, 40 normalized); the other 4 match no customer. 141 of 145 note names linked (112 exact, 16
+normalized, 13 shortened, covering 15 notes). 4 stay unmatched: 3 prospect meetings and "Evanston
+Row", which fits two customers and keeps both as candidates.

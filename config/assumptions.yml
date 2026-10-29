@@ -1,0 +1,28 @@
+# Our assumptions: where the data allows more than one reading, the rule we chose and why.
+#
+# Each rule can be turned off with `applies: false`. `confirmed: false` means it is our call and
+# still needs Corvane's answer. `exceptions` lists the keys of single cases where the opposite of
+# the rule holds.
+
+duplicateCustomers:
+  # CRM records with the same normalized name in the same city and state are one customer. Records
+  # that share a name but not the location are kept apart as possible duplicates. Case key: the CRM
+  # ids joined by "+", e.g. "C-0293+C-0796".
+  applies: true
+  confirmed: false
+  basis: >-
+    The names only differ in case, punctuation or a legal suffix, the city and state match, and
+    NetSuite bills both ids.
+
+shortenedNoteNames:
+  # A note name of two or more words is linked when exactly one customer's name starts with those
+  # words ("Kessler Surgical"). Case key: the name as written in the notes.
+  applies: true
+  confirmed: false
+  basis: >-
+    The shortened name has at least two words and matches the start of exactly one customer's name.
+
+# Links no rule can make, decided by a person: a QuickBooks or note name to a customer id, or a
+# NetSuite id missing from the CRM to a CRM customer. Each entry has `source`, `value`, `customer`,
+# `confirmed` and `evidence`.
+assignments: []
