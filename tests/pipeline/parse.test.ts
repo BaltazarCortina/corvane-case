@@ -1,25 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { EXPORTS, type ExportName, parseCsv, type RawExports } from '../../src/pipeline/exports';
 import { parseExports } from '../../src/pipeline/parse';
 import type { Reference } from '../../src/pipeline/reference';
+import { exportsWith } from '../fixtures';
 
 const reference: Reference = {
   states: { OH: ['Ohio'] },
   industries: { Retail: [] },
   serviceLines: { Repair: ['Valve repair'], Monitoring: ['Monitoring - monthly'] },
 };
-
-/** Builds the five exports from data lines; each export not given has only its header. */
-function exportsWith(lines: Partial<Record<ExportName, string[]>>): RawExports {
-  const csv = (name: ExportName) => [EXPORTS[name].columns.join(','), ...(lines[name] ?? [])].join('\n');
-  return {
-    crm: parseCsv('crm', csv('crm')),
-    quickbooks: parseCsv('quickbooks', csv('quickbooks')),
-    netsuite: parseCsv('netsuite', csv('netsuite')),
-    contracts: parseCsv('contracts', csv('contracts')),
-    notes: parseCsv('notes', csv('notes')),
-  };
-}
 
 describe('QuickBooks', () => {
   const parsed = parseExports(

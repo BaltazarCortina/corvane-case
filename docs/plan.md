@@ -87,7 +87,7 @@ for lint and format.
 | 1 | Scaffold | Tooling, raw exports, README and this plan | Done |
 | 2 | Parse the exports | Typed rows from the five files, reference mappings | Done |
 | 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | Done |
-| 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | |
+| 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | Done |
 | 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | |
 | 6 | Data findings | Assumptions and observations, impact of each assumption | |
 | 7 | Note classification | LLM reading each note, with quote verification | |
@@ -159,8 +159,8 @@ or listed as unmatched.
 - One invoice table for both systems: every row kept, with its customer, service line, and whether it
   counts or which rule excludes it (duplicate, void). Credit memos count as negative billing in the
   month they are issued.
-- Contracts: duplicates once, impossible dates (end before start) leave the end unknown, the latest
-  ending contract is the current one.
+- Contracts: duplicates once, impossible dates (end before start) leave the end unknown, the contract
+  that started last is the current one.
 - Notes linked to customers; unmatched notes kept.
 - One record per customer: identity, aliases, account managers, contract, invoices, notes.
 - `npm run pipeline` writes `data/build/` and prints a short summary.
@@ -363,3 +363,21 @@ location and merged; 2 of them name different account managers. 187 of 191 Quick
 exact, 40 normalized); the other 4 match no customer. 141 of 145 note names linked (112 exact, 16
 normalized, 13 shortened, covering 15 notes). 4 stay unmatched: 3 prospect meetings and "Evanston
 Row", which fits two customers and keeps both as candidates.
+
+### 4. Unified model
+
+Four more rules in `config/assumptions.yml`: duplicate invoices, voided invoices, credit memos and
+impossible contract dates. `src/pipeline/model.ts` puts the invoices of both systems in one table, each
+with its customer and either counted or excluded by the first rule that applies; links contracts and
+notes; gives each customer the names and ids it appears under and its current contract; and reconciles
+each export from its total to the counted one, rule by rule. `src/pipeline/build.ts` chains parse,
+resolve and model into one function, and `npm run pipeline` writes `data/build/model.json` with a
+summary. Each rule, its exceptions and turning it off are tested on fixtures; on the real data, each
+export reconciles to the cent, the QuickBooks total matches its TOTAL row, and every invoice and
+contract points to an existing customer or is counted as unassigned.
+
+Outcome: QuickBooks $37,389,362.29 in 2,606 rows, all counted; 64 rows ($641,756.27) unassigned, from the
+4 names that match no customer. NetSuite $62,056,789.79 in 4,170 rows: 45 duplicates ($801,407.19) and 67
+voided ($1,112,279.96) excluded, $60,143,102.64 counted in 4,058 rows. 155 contracts: 2 duplicates and 6
+with an unknown end; no customer has more than one contract, 17 have none. 4 notes linked to no
+customer.

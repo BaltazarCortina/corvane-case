@@ -27,6 +27,10 @@ const assignment = z.strictObject({
 const schema = z.strictObject({
   duplicateCustomers: rule,
   shortenedNoteNames: rule,
+  duplicateInvoices: rule,
+  voidedInvoices: rule,
+  creditMemos: rule,
+  impossibleContractDates: rule,
   /** Links for values no rule can make, decided by a person. */
   assignments: z.array(assignment).default([]),
 });

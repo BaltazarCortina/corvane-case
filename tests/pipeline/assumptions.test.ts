@@ -4,6 +4,10 @@ import { holds, parseAssumptions, type Rule } from '../../src/pipeline/assumptio
 const valid = `
 duplicateCustomers: { applies: true, confirmed: false, basis: b }
 shortenedNoteNames: { applies: true, confirmed: false, basis: b }
+duplicateInvoices: { applies: true, confirmed: false, basis: b }
+voidedInvoices: { applies: true, confirmed: false, basis: b }
+creditMemos: { applies: true, confirmed: false, basis: b }
+impossibleContractDates: { applies: true, confirmed: false, basis: b }
 `;
 
 describe('parseAssumptions', () => {

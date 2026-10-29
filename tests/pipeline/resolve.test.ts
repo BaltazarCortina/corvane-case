@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { Assignment, Assumptions, Rule } from '../../src/pipeline/assumptions';
+import type { Assignment } from '../../src/pipeline/assumptions';
 import type { CrmRecord, ParsedExports } from '../../src/pipeline/parse';
 import { resolveCustomers } from '../../src/pipeline/resolve';
+import { assumptionsWith } from '../fixtures';
 
 function crm(id: string, name: string, more: Partial<CrmRecord> = {}): CrmRecord {
   return {
@@ -49,17 +50,6 @@ function parsed(f: Fixture): ParsedExports {
   };
 }
 
-function assumptions(
-  more: { duplicates?: Partial<Rule>; shortened?: Partial<Rule>; assignments?: Assignment[] } = {},
-): Assumptions {
-  const rule = { applies: true, confirmed: false, basis: '', exceptions: [] };
-  return {
-    duplicateCustomers: { ...rule, ...more.duplicates },
-    shortenedNoteNames: { ...rule, ...more.shortened },
-    assignments: more.assignments ?? [],
-  };
-}
-
 const assignment = (source: Assignment['source'], value: string, customer: string): Assignment => ({
   source,
   value,
@@ -76,7 +66,7 @@ describe('duplicate CRM records', () => {
   ];
 
   it('merges records with the same name and location, keeping the oldest as the main record', () => {
-    const r = resolveCustomers(parsed({ crm: records.slice(0, 2) }), assumptions());
+    const r = resolveCustomers(parsed({ crm: records.slice(0, 2) }), assumptionsWith());
     expect(r.customers).toHaveLength(1);
     expect(r.customers[0]).toMatchObject({
       id: 'C-2',
@@ -89,7 +79,7 @@ describe('duplicate CRM records', () => {
   });
 
   it('keeps records in different locations apart, as possible duplicates', () => {
-    const r = resolveCustomers(parsed({ crm: records }), assumptions());
+    const r = resolveCustomers(parsed({ crm: records }), assumptionsWith());
     expect(r.customers).toHaveLength(3);
     expect(r.duplicateGroups).toEqual([
       { key: 'C-1+C-2+C-3', crmIds: ['C-1', 'C-2', 'C-3'], sameLocation: false, merged: false },
@@ -99,19 +89,25 @@ describe('duplicate CRM records', () => {
   it('keeps an exception apart', () => {
     const r = resolveCustomers(
       parsed({ crm: records.slice(0, 2) }),
-      assumptions({ duplicates: { exceptions: ['C-1+C-2'] } }),
+      assumptionsWith({ duplicateCustomers: { exceptions: ['C-1+C-2'] } }),
     );
     expect(r.customers).toHaveLength(2);
     expect(r.duplicateGroups[0].merged).toBe(false);
   });
 
   it('merges a possible duplicate in another location only by exception', () => {
-    const r = resolveCustomers(parsed({ crm: records }), assumptions({ duplicates: { exceptions: ['C-1+C-2+C-3'] } }));
+    const r = resolveCustomers(
+      parsed({ crm: records }),
+      assumptionsWith({ duplicateCustomers: { exceptions: ['C-1+C-2+C-3'] } }),
+    );
     expect(r.customers).toHaveLength(1);
   });
 
   it('keeps every record apart when the rule is off', () => {
-    const r = resolveCustomers(parsed({ crm: records.slice(0, 2) }), assumptions({ duplicates: { applies: false } }));
+    const r = resolveCustomers(
+      parsed({ crm: records.slice(0, 2) }),
+      assumptionsWith({ duplicateCustomers: { applies: false } }),
+    );
     expect(r.customers).toHaveLength(2);
   });
 
@@ -120,7 +116,7 @@ describe('duplicate CRM records', () => {
       parsed({
         crm: [crm('C-1', 'Carrow Market Group, Inc.'), crm('C-2', 'Carrow Market Group', { created: '2024-01-01' })],
       }),
-      assumptions(),
+      assumptionsWith(),
     );
     expect(r.customers[0]).toMatchObject({ id: 'C-1', name: 'Carrow Market Group' });
   });
@@ -141,7 +137,7 @@ describe('names', () => {
         crm: records,
         quickbooksNames: ['Halloran Academy', 'HALLORAN HEALTH PARTNERS, Inc.', 'Halloran Hotels'],
       }),
-      assumptions(),
+      assumptionsWith(),
     );
     expect(r.quickbooksNames).toEqual({
       'Halloran Academy': { customerId: 'C-1', method: 'exact', candidates: [] },
@@ -153,7 +149,7 @@ describe('names', () => {
   it('accepts a shortened note name only when it starts exactly one customer name', () => {
     const r = resolveCustomers(
       parsed({ crm: records, noteNames: ['Kessler Surgical', 'Evanston Row', 'Halloran'] }),
-      assumptions(),
+      assumptionsWith(),
     );
     expect(r.noteNames).toEqual({
       'Kessler Surgical': { customerId: 'C-3', method: 'shortened', candidates: [] },
@@ -165,20 +161,20 @@ describe('names', () => {
 
   it('lists the candidates of a full name shared by customers kept apart', () => {
     const twins = [crm('C-1', 'Granville Inns'), crm('C-2', 'GRANVILLE INNS')];
-    const keptApart = assumptions({ duplicates: { exceptions: ['C-1+C-2'] } });
+    const keptApart = assumptionsWith({ duplicateCustomers: { exceptions: ['C-1+C-2'] } });
     const r = resolveCustomers(parsed({ crm: twins, noteNames: ['granville inns'] }), keptApart);
     expect(r.noteNames['granville inns']).toEqual({ customerId: null, method: null, candidates: ['C-1', 'C-2'] });
   });
 
   it('does not shorten QuickBooks names', () => {
-    const r = resolveCustomers(parsed({ crm: records, quickbooksNames: ['Kessler Surgical'] }), assumptions());
+    const r = resolveCustomers(parsed({ crm: records, quickbooksNames: ['Kessler Surgical'] }), assumptionsWith());
     expect(r.quickbooksNames['Kessler Surgical'].customerId).toBeNull();
   });
 
   it('rejects a shortened name by exception', () => {
     const r = resolveCustomers(
       parsed({ crm: records, noteNames: ['Kessler Surgical'] }),
-      assumptions({ shortened: { exceptions: ['Kessler Surgical'] } }),
+      assumptionsWith({ shortenedNoteNames: { exceptions: ['Kessler Surgical'] } }),
     );
     expect(r.noteNames['Kessler Surgical'].customerId).toBeNull();
     expect(r.shortenedNames[0].accepted).toBe(false);
@@ -194,7 +190,7 @@ describe('ids missing from the CRM and assignments', () => {
         quickbooksNames: ['Larkin Hotels'],
         noteNames: ['larkin hotels'],
       }),
-      assumptions({ assignments: [assignment('quickbooks', 'Larkin Hotels', 'C-9')] }),
+      assumptionsWith({ assignments: [assignment('quickbooks', 'Larkin Hotels', 'C-9')] }),
     );
     expect(r.customers.find((c) => c.id === 'C-9')).toMatchObject({
       name: 'Larkin Hotels',
@@ -208,7 +204,7 @@ describe('ids missing from the CRM and assignments', () => {
   it('links an unknown id to a CRM customer when assigned', () => {
     const r = resolveCustomers(
       parsed({ crm: [crm('C-1', 'Acme')], netsuiteIds: ['C-9'] }),
-      assumptions({ assignments: [assignment('netsuite', 'C-9', 'C-1')] }),
+      assumptionsWith({ assignments: [assignment('netsuite', 'C-9', 'C-1')] }),
     );
     expect(r.customers).toHaveLength(1);
     expect(r.customers[0].otherIds).toEqual(['C-9']);
@@ -218,7 +214,7 @@ describe('ids missing from the CRM and assignments', () => {
   it('puts an assignment before the name rules', () => {
     const r = resolveCustomers(
       parsed({ crm: [crm('C-1', 'Acme'), crm('C-2', 'Acme Two')], quickbooksNames: ['Acme'] }),
-      assumptions({ assignments: [assignment('quickbooks', 'Acme', 'C-2')] }),
+      assumptionsWith({ assignments: [assignment('quickbooks', 'Acme', 'C-2')] }),
     );
     expect(r.quickbooksNames.Acme).toEqual({ customerId: 'C-2', method: 'assigned', candidates: [] });
   });
@@ -226,9 +222,9 @@ describe('ids missing from the CRM and assignments', () => {
   it('reports config entries that point to nothing', () => {
     const r = resolveCustomers(
       parsed({ crm: [crm('C-1', 'Acme')], quickbooksNames: ['Acme'] }),
-      assumptions({
+      assumptionsWith({
         assignments: [assignment('quickbooks', 'Acme', 'C-404'), assignment('quickbooks', 'Gone Inc', 'C-1')],
-        duplicates: { exceptions: ['C-7+C-8'] },
+        duplicateCustomers: { exceptions: ['C-7+C-8'] },
       }),
     );
     expect(r.quickbooksNames.Acme).toEqual({ customerId: 'C-1', method: 'exact', candidates: [] });

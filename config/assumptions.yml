@@ -22,6 +22,37 @@ shortenedNoteNames:
   basis: >-
     The shortened name has at least two words and matches the start of exactly one customer's name.
 
+duplicateInvoices:
+  # An invoice row identical in every column to an earlier one, invoice number included, is an
+  # export error and does not count. Case key: the invoice, e.g. "netsuite:NS-INV-51227".
+  applies: true
+  confirmed: false
+  basis: >-
+    A second charge would have its own invoice number. The copies carry the same number as the
+    original and sit on the line right after it.
+
+voidedInvoices:
+  # A voided invoice was cancelled and does not count. Case key: the invoice.
+  applies: true
+  confirmed: false
+  basis: The billing system marks it as void.
+
+creditMemos:
+  # A credit memo (a negative amount) reduces billing in the month it is issued, since it does not
+  # say which invoice it corrects. Case key: the invoice.
+  applies: true
+  confirmed: false
+  basis: Billing is reported net of credits. The exports do not link a credit to the invoice it corrects.
+
+impossibleContractDates:
+  # A contract that ends before it starts has an unreliable end date, taken as unknown. Turned off,
+  # the end date is taken as exported and the contract looks expired. Case key: the contract id.
+  applies: true
+  confirmed: false
+  basis: >-
+    The end falls one or more years before the start, which looks like a mistyped year. The right
+    year cannot be told from the data. Asked Corvane.
+
 # Links no rule can make, decided by a person: a QuickBooks or note name to a customer id, or a
 # NetSuite id missing from the CRM to a CRM customer. Each entry has `source`, `value`, `customer`,
 # `confirmed` and `evidence`.
