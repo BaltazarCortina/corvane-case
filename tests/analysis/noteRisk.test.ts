@@ -1,0 +1,54 @@
+import { describe, expect, it } from 'vitest';
+import { worstNoteRiskByCustomer } from '../../src/analysis/noteRisk';
+import type { NoteSignal } from '../../src/llm/notes';
+import type { Note } from '../../src/pipeline/model';
+
+const note = (id: string, customerId: string | null, date: string): Note => ({
+  id,
+  line: 2,
+  customerId,
+  nameAsWritten: '',
+  linkedBy: null,
+  candidates: [],
+  date,
+  author: '',
+  text: '',
+});
+
+const signal = (noteId: string, risk: NoteSignal['risk']): NoteSignal => ({
+  noteId,
+  risk,
+  reasons: [],
+  noteType: 'customer',
+  quote: '',
+  summary: '',
+  quoteVerified: true,
+  model: 'm',
+  promptVersion: 'v',
+});
+
+const period = { label: '', start: '2025-10-01', end: '2026-09-30' };
+
+describe('worstNoteRiskByCustomer', () => {
+  it('keeps the highest risk of each customer within the period', () => {
+    const notes = [
+      note('N-1', 'C-1', '2026-01-01'),
+      note('N-2', 'C-1', '2026-02-01'),
+      note('N-3', 'C-1', '2025-01-01'),
+      note('N-4', 'C-2', '2026-03-01'),
+      note('N-5', null, '2026-03-01'),
+    ];
+    const signals = [
+      signal('N-1', 'medium'),
+      signal('N-2', 'low'),
+      signal('N-3', 'high'),
+      signal('N-4', 'none'),
+      signal('N-5', 'high'),
+    ];
+    const worst = worstNoteRiskByCustomer(notes, signals, period);
+    expect([...worst]).toEqual([
+      ['C-1', 'medium'],
+      ['C-2', 'none'],
+    ]);
+  });
+});

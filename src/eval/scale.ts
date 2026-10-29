@@ -7,3 +7,13 @@ export const NOTE_TYPES = ['customer', 'internal', 'prospect'] as const;
 export type RiskLevel = (typeof RISK_LEVELS)[number];
 export type Reason = (typeof REASONS)[number];
 export type NoteType = (typeof NOTE_TYPES)[number];
+
+/** A note puts the customer at risk when its level is medium or high. */
+export function isAtRisk(risk: RiskLevel): boolean {
+  return risk === 'medium' || risk === 'high';
+}
+
+/** The higher of two risk levels. */
+export function higherRisk(a: RiskLevel, b: RiskLevel): RiskLevel {
+  return RISK_LEVELS.indexOf(a) >= RISK_LEVELS.indexOf(b) ? a : b;
+}

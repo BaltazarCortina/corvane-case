@@ -7,8 +7,9 @@
   },
   "scripts": {
     "pipeline": "tsx scripts/pipeline.ts",
-    "eval:sample": "tsx scripts/label-sample.ts",
     "llm": "tsx --env-file-if-exists=.env scripts/llm.ts",
+    "eval": "tsx scripts/eval.ts",
+    "eval:sample": "tsx scripts/label-sample.ts",
     "check": "biome check .",
     "fix": "biome check --write .",
     "typecheck": "tsc --noEmit",

@@ -15,5 +15,11 @@ Requires Node 22 or later.
 npm install
 npm run pipeline # build the model, billing analysis and data findings from data/raw into data/build
 npm run llm      # read the account notes with the LLM into data/llm (needs OPENAI_API_KEY in .env)
+```
+
+## Check it
+
+```bash
 npm run verify   # lint, typecheck and tests
+npm run eval     # score the LLM's reading of the notes against the hand labels in eval/labels.csv
 ```

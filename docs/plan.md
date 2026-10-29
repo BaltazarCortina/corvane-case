@@ -93,7 +93,7 @@ for lint and format.
 | 6 | Data findings | Assumptions and observations, impact of each assumption | Done |
 | 7 | Evaluation set | Keyword screen, stratified sample of notes, hand labels || Done |
 | 8 | Note classification | LLM reading each note, with quote verification || Done |
-| 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing | |
+| 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing || Done |
 | 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | |
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | |
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | |
@@ -267,7 +267,8 @@ sample has a valid label.
 - Computed in the LLM step, right after the note signals it needs, and saved with them, so the
   customer stories and the server read the same worklist.
 
-**Done when:** tests for the matrix, the group rules and their order.
+**Done when:** tests for the matrix, the group rules and their order; the escalation notes the LLM
+reads as medium (stage 9) do not change any customer's group.
 
 ### 11. Customer stories
 
@@ -340,6 +341,12 @@ sample has a valid label.
 
 - Ongoing evaluation: label a few new notes at random every week, so the measured accuracy follows the
   notes as they change, instead of resting on a single sample.
+- Refine the prompts, for the notes and for the customer stories, over several rounds of hand review:
+  compare what the LLM says with what a person says, find where they part and why, fix the definition
+  rather than the example, and measure again on notes not used before (a sample used to find a gap
+  overstates the scores once the prompt is fixed for it). One gap already known: the scale does not say
+  outright that a customer escalating to its senior management, or demanding credits or a remediation
+  plan, is high risk, and the LLM reads those notes as medium.
 - Atypical invoices measured against the customer's average month before each invoice (the previous 6
   or 12 months) instead of its whole history, so a customer that grows steadily is compared with its
   current size. Small effect with two and a half years of data; it grows with every export added.
@@ -478,4 +485,34 @@ Outcome: 263 notes read by `gpt-6-luna` in about 70 seconds. 198 none, 21 low, 3
 every quote found in its note. 3 notes typed as prospects, the same 3 that no customer could be found
 for; 2 internal. Among the high ones, three are fire marshal citations, the case the hand labels left as
 medium with a comment.
+
+### 9. Evaluation
+
+`src/eval/score.ts` scores readings against the hand labels, each labeled note weighted by the notes of
+its group it stands for; `src/eval/evaluate.ts` builds the report: the LLM against the labels, the
+keyword screen as a baseline, the confusion between levels, every disagreement, and the billing check,
+which groups customers by the highest risk in their notes (`src/analysis/noteRisk.ts`) and compares
+their billing between the two halves. `npm run eval` writes `data/llm/eval-report.json` with the model,
+prompt version and date. Tests cover the weighting, the scores and the highest risk per customer; on the
+real data, every labeled note is scored and the groups add up to all the notes.
+
+Outcome, `gpt-6-luna` with prompt `notes-1`: the LLM got every note in the sample right on whether it is
+at risk (11 at risk, no false alarms, none missed), so precision and recall are 100%, weighted or not;
+same level on 88% of the notes, same note type on all, and the same reasons on every note at risk. The
+keyword screen reaches 50% precision and 74% recall. With 11 notes at risk in the sample, 100% means no
+miss was seen, not that there are none.
+
+The 6 disagreements were read; all are one level apart on the same side of at risk. Two deficiency lists
+the labels call none and the LLM low. Two escalations to the customer's own VP with a demand for credits,
+high in the labels and medium for the LLM: the scale does not say outright that this is beyond the
+account manager. All three notes of this kind in the data read as medium; two belong to customers with
+other high notes, and the third (Wexford Commercial Properties) is checked in stage 10. The prompt is
+left as it is in the prototype; refining the prompts over rounds of hand review is a next step. Two fire
+marshal citations, medium in the labels and high for the LLM, the case the labels already marked as
+arguable.
+
+Billing check: the 9 customers whose notes say high risk bill a median 91% less, all of them less; the
+6 at medium, 6% less, two thirds of them less; customers at low or none bill a few percent more. The 64
+customers with no notes in the period bill a median 6% less: the notes do not see everything, which is
+why billing has its own weight in the risk level.
 

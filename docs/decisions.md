@@ -249,6 +249,12 @@ notes, so it holds for notes nobody has seen yet. A person labeling and the LLM 
 with the reasons (service, price, competitor, billing, other) and the note type (customer, internal,
 prospect). It is a business definition: Corvane's account managers should validate it.
 
+Known limit: the scale does not say outright that a customer escalating to its own senior management, or
+demanding credits or a remediation plan, has taken the conflict beyond the account manager. The LLM reads
+those notes as medium where the hand labels say high. There are three such notes; two belong to customers
+with other high notes, and the third customer's billing decline weighs on its risk on its own. Refining
+the prompts over rounds of hand review, this definition among them, is a next step.
+
 ### The labeled sample is stratified by a keyword screen
 
 **Criterion.** A plain random sample would hold few notes with risk, too few to tell how many the LLM
@@ -283,3 +289,34 @@ without a quote found in the note is reported as a failure.
 text sent. Running again gives the same answers at no cost; changing the prompt, the model or a note asks
 again. Like the pipeline output, the answers are not in the repository: a fresh checkout runs `npm run
 pipeline` and `npm run llm`, as the first time.
+
+### What matters most is telling notes at risk from the rest
+
+**Criterion.** A note is at risk when it is medium or high. The headline scores are precision (of the
+notes the LLM flags, how many are at risk) and recall (of the notes at risk, how many it flags), because
+that is what puts a customer on the worklist. The exact level, the reasons and the note type are scored
+too, as secondary measures.
+
+### Scores are weighted back to all the notes
+
+**Mechanical.** Each labeled note stands for the notes of its group: 59 / 20 for the keyword group, 204 /
+20 for the rest. Weighted counts estimate the scores over all 263 notes; the plain counts in the sample
+are reported next to them.
+
+### The LLM has to beat the keyword screen
+
+**Criterion.** The same keyword screen that splits the sample is scored as a classifier: a note is at
+risk if it mentions any of its words. If the LLM did not clearly beat it, a list of words would do the
+job for less.
+
+### Billing checks the notes without any label
+
+**Criterion.** Customers are grouped by the highest risk their notes show over the last twelve months,
+and their billing compared between the two halves. If customers whose notes say high risk did not bill
+less, something would be wrong with the reading, whatever the labels say.
+
+### Each report says which model and prompt it measured, and when
+
+**Mechanical.** The model is not fully deterministic, so a fresh `npm run llm` can read a few notes
+differently. The report records the model, the prompt version and the date, so its numbers are not
+expected to repeat to the decimal.
