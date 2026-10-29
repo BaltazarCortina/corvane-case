@@ -12,6 +12,14 @@ parameters:
   atypicalInvoiceExcludedLines: [Inspection & Testing, Monitoring]
   atypicalInvoiceMinimum: 100000
   atypicalInvoiceMultiple: 1.5
+  # A customer with no invoice in this many days has stopped billing. Customers are billed almost
+  # every month, so 90 days without one is a clear signal.
+  stoppedBillingDays: 90
+  # A contract billed in the last 12 months below or above these shares of its annual value is
+  # listed for Corvane to check: unbilled work or an unrecorded cancellation below, work beyond the
+  # contract above. Customers usually bill close to their contract value.
+  underBilledContractShare: 0.5
+  overBilledContractShare: 1.5
 
 duplicateCustomers:
   # CRM records with the same normalized name in the same city and state are one customer. Records

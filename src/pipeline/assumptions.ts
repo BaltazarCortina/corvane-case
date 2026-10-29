@@ -32,6 +32,12 @@ const parameters = z.strictObject({
   atypicalInvoiceMinimum: z.number().positive(),
   /** ...if it is also at least this many times what the customer bills in an average month. */
   atypicalInvoiceMultiple: z.number().positive(),
+  /** A customer with no invoice for this many days has stopped billing. */
+  stoppedBillingDays: z.number().int().positive(),
+  /** A contract billed below this share of its value is worth checking... */
+  underBilledContractShare: z.number().positive(),
+  /** ...and so is one billed above this share. */
+  overBilledContractShare: z.number().positive(),
 });
 
 const schema = z.strictObject({

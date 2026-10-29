@@ -24,6 +24,8 @@ export interface Invoice {
   date: string;
   amount: number;
   serviceLine: string | null;
+  /** The free-text description QuickBooks has instead of a service line. */
+  memo: string | null;
   status: string;
   excludedBy: Exclusion | null;
 }
@@ -134,6 +136,7 @@ function invoiceFromQuickBooks(row: QuickBooksInvoice, resolution: Resolution, a
     date: row.date,
     amount: row.amount,
     serviceLine: row.serviceLine,
+    memo: row.memo,
     status: row.status,
     excludedBy: exclusionOf(row, key, assumptions),
   };
@@ -151,6 +154,7 @@ function invoiceFromNetSuite(row: NetSuiteInvoice, resolution: Resolution, assum
     date: row.date,
     amount: row.amount,
     serviceLine: row.serviceLine,
+    memo: null,
     status: row.status,
     excludedBy: exclusionOf(row, key, assumptions),
   };

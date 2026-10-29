@@ -13,6 +13,6 @@ Requires Node 22 or later.
 
 ```bash
 npm install
-npm run pipeline # build the model from the exports in data/raw into data/build
+npm run pipeline # build the model, billing analysis and data findings from data/raw into data/build
 npm run verify   # lint, typecheck and tests
 ```

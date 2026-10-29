@@ -1,6 +1,7 @@
 // Everything the app shows about billing, computed from the model in one pass.
 
 import type { Parameters } from '../pipeline/assumptions';
+import { build, type Inputs } from '../pipeline/build';
 import type { Model } from '../pipeline/model';
 import {
   billedInvoices,
@@ -27,6 +28,19 @@ export interface BillingAnalysis {
   bridge: Bridge;
   open: OpenAmount | null;
   months: MonthPoint[];
+}
+
+/** The model and its billing analysis, built from one set of inputs. */
+export interface Built {
+  model: Model;
+  billing: BillingAnalysis;
+}
+
+export function analyze(inputs: Inputs): Built {
+  const model = build(inputs);
+  const { parameters } = inputs.assumptions;
+  const billing = analyzeBilling(model, parameters, inputs.reference.fiscalYearStartMonth);
+  return { model, billing };
 }
 
 export function analyzeBilling(model: Model, parameters: Parameters, fiscalYearStartMonth: number): BillingAnalysis {

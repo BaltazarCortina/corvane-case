@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { holds, parseAssumptions, type Rule } from '../../src/pipeline/assumptions';
 
 const valid = `
-parameters: { atypicalInvoiceExcludedLines: [], atypicalInvoiceMinimum: 100000, atypicalInvoiceMultiple: 1.5 }
+parameters:
+  atypicalInvoiceExcludedLines: []
+  atypicalInvoiceMinimum: 100000
+  atypicalInvoiceMultiple: 1.5
+  stoppedBillingDays: 90
+  underBilledContractShare: 0.5
+  overBilledContractShare: 1.5
 duplicateCustomers: { applies: true, confirmed: false, basis: b }
 shortenedNoteNames: { applies: true, confirmed: false, basis: b }
 duplicateInvoices: { applies: true, confirmed: false, basis: b }

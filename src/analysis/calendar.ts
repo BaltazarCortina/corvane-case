@@ -118,3 +118,15 @@ function twelveMonthsTo(end: string): Period {
 }
 
 export const contains = (period: Period, iso: string) => iso >= period.start && iso <= period.end;
+
+/** The days two periods share, or null if they share none. */
+export function overlap(a: Period, b: Period): Period | null {
+  const [, start] = [a.start, b.start].sort();
+  const [end] = [a.end, b.end].sort();
+  return start <= end ? { label: a.label, start, end } : null;
+}
+
+export function daysIn(period: Period): number {
+  const milliseconds = toDate(period.end).getTime() - toDate(period.start).getTime();
+  return milliseconds / 86_400_000 + 1;
+}

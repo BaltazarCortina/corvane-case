@@ -195,3 +195,44 @@ always add up to the change. Each customer shows how much of its change comes fr
 
 **Criterion.** The share of a period still open when the data was exported is computed from NetSuite,
 which keeps collection status up to date. QuickBooks statuses stopped changing at the system change.
+
+## Data findings
+
+### Two kinds of finding: assumptions and observations
+
+**Criterion.** An assumption is a choice of ours that moves the numbers; it says whether Corvane
+confirmed it and what reversing it would change. An observation does not move the numbers. Observations
+with money involved, or worth checking with Corvane, come before the informative ones.
+
+### The impact of an assumption is measured by reversing it
+
+**Criterion.** The whole pipeline runs again with the rule turned the other way, and one measure is
+compared: the change in the half for the invoice rules, the customers that stopped billing for duplicate
+customers, the notes linked for shortened names, and the contracts already ended for impossible contract
+dates. There is no second copy of the logic that could drift from the first.
+
+### A contract is compared with its value over the time it was in force
+
+**Criterion.** Set by `underBilledContractShare` and `overBilledContractShare` in
+`config/assumptions.yml`. What a contract should bill is its annual value prorated over the part of the
+last twelve months it was in force; a contract whose end is unknown is taken as still in force. Below
+half, it may be work done and not invoiced or a cancellation nobody recorded; above one and a half times,
+work beyond the contract or an outdated value. Contracts in force less than three months in that window
+are left out.
+
+### A contract that ended is still billing when invoices keep coming
+
+**Criterion.** Set by `stoppedBillingDays` in `config/assumptions.yml`. A customer whose current contract
+ended before the as-of date and who has an invoice in the last 90 days is billing without a contract on
+file: a month-to-month arrangement or a renewal that was not recorded.
+
+### The jump at the system change is compared with the usual variation
+
+**Criterion.** Billing rose 17% from the last QuickBooks month to the first NetSuite one, which looked
+suspicious. It is flagged only if it is larger than every other month-to-month move in the data; the same
+month a year later rose 25% with no system change.
+
+### The CRM status is reported, never used
+
+**Criterion.** Where the CRM says active and the customer has not billed in 90 days, or says inactive and
+it billed recently, the contradiction is listed. Billing decides whether a customer is active.

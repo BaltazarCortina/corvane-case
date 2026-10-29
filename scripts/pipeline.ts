@@ -1,23 +1,35 @@
-// Runs the pipeline over the exports in data/raw and writes the model to data/build/model.json,
-// with a short summary for whoever operates it.
+// Runs the pipeline over the exports in data/raw and writes everything that does not need the LLM to
+// data/build: the model, the billing analysis and the data findings. Nothing downstream recomputes them.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { analyze } from '../src/analysis/analyze';
+import { detectFindings, type Finding } from '../src/analysis/findings';
 import { paths } from '../src/paths';
-import { build, loadInputs } from '../src/pipeline/build';
+import { loadInputs } from '../src/pipeline/build';
 import type { Model, Tally } from '../src/pipeline/model';
 
 const inputs = loadInputs(paths);
-const model = build(inputs);
+const built = analyze(inputs);
+const findings = detectFindings(inputs, built);
 
+const outputs = { 'model.json': built.model, 'billing.json': built.billing, 'findings.json': findings };
 mkdirSync(paths.build, { recursive: true });
-const output = join(paths.build, 'model.json');
-const json = JSON.stringify(model);
-writeFileSync(output, json);
+for (const [file, content] of Object.entries(outputs)) {
+  const json = JSON.stringify(content);
+  writeFileSync(join(paths.build, file), json);
+}
 
-const summary = summaryLines(model);
+const summary = [...summaryLines(built.model), ...findingLines(findings)];
 console.log(summary.join('\n'));
-console.log(`\nWrote ${output}`);
+console.log(`\nWrote ${Object.keys(outputs).join(', ')} to ${paths.build}`);
+
+function findingLines(findings: Finding[]): string[] {
+  const assumptions = findings.filter((f) => f.kind === 'assumption').length;
+  const toCheck = findings.filter((f) => f.kind === 'observation' && f.worthChecking).length;
+  const informative = findings.length - assumptions - toCheck;
+  return [`Findings   ${assumptions} assumptions, ${toCheck} observations worth checking, ${informative} informative`];
+}
 
 function summaryLines(model: Model): string[] {
   const outsideCrm = model.customers.filter((c) => !c.inCrm).length;

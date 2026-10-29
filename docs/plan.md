@@ -23,9 +23,12 @@ LLM reading the account notes.
 
 ## Principles
 
-- **Build once, then read.** A pipeline turns the raw exports into a clean model. It is a pure
-  function (`exports + config → model`), runs in well under a second, and its output is what the
-  server, the LLM steps and the evaluation all read. The numbers are reproducible and testable.
+- **Build once, then read.** A pipeline turns the raw exports into a clean model, the billing analysis
+  and the data findings. It is a pure function (`exports + config → outputs`), runs in well under a
+  second, and its output is what the LLM steps, the evaluation and the server read. What is expensive,
+  or needs the raw exports, is computed once and saved; what derives cheaply from saved outputs is
+  computed by a pure function in the step that needs it, and saved too. The server only reads files,
+  so the numbers are reproducible and never change while someone is looking at them.
 - **Nothing is dropped silently.** Every invoice is kept and marked: counted, or excluded and by which
   rule. This is what makes the reconciliation and the impact of each assumption possible.
 - **Data, mechanical rules and our criteria are kept apart.** Data comes from the exports or the
@@ -42,14 +45,12 @@ LLM reading the account notes.
 
 ```
 data/raw/*.csv ──┐
-config/*.yml ────┴─► pipeline ──► data/build/   clean model + data findings
-                     parse → resolve customers → model → findings
+config/*.yml ────┴─► npm run pipeline ──► data/build/   model, billing analysis, data findings
+                     parse → resolve customers → model → billing → findings
                                 │
-                                ├─► LLM steps ──► data/llm/   note signals, customer stories
-                                │                    └─► eval/   scores against hand labels
                                 ▼
-                     analysis (billing metrics, risk, worklist)
-                                │
+                     npm run llm ──► data/llm/   note signals → risk and worklist → customer stories
+                                │       └─► eval/   scores against hand labels
                                 ▼
                      API (Hono) ──► web (React): Summary · Billing · Worklist · Data
 ```
@@ -66,10 +67,10 @@ Planned layout:
 | `docs/` | This plan and the decisions behind the numbers |
 | `eval/` | The hand-labeled note sample |
 | `scripts/` | Command line entry points (pipeline, LLM, evaluation) |
-| `src/analysis/` | Billing metrics, risk and worklist, computed over the model |
+| `src/analysis/` | Billing metrics, data findings, risk and worklist, computed over the model |
 | `src/eval/` | Scoring against hand labels and the keyword baseline |
 | `src/llm/` | Note classification and customer stories, with their verifiers |
-| `src/pipeline/` | Parsing, customer resolution, the unified model and the data findings |
+| `src/pipeline/` | Parsing, customer resolution and the unified model |
 | `src/server/` | The API |
 | `tests/` | Unit tests, mirroring `src/`, on small fixtures built for each case |
 | `tests/data/` | Invariants on the real exports: totals that must reconcile, rows that must all be accounted for |
@@ -89,7 +90,7 @@ for lint and format.
 | 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | Done |
 | 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | Done |
 | 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge || Done |
-| 6 | Data findings | Assumptions and observations, impact of each assumption | |
+| 6 | Data findings | Assumptions and observations, impact of each assumption | Done |
 | 7 | Note classification | LLM reading each note, with quote verification | |
 | 8 | Evaluation | Hand labels, keyword baseline, cross-check with billing | |
 | 9 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | |
@@ -201,8 +202,8 @@ to the change between the two periods.
     candidates it fits), since their content does not reach the risk analysis. The rest are
     informative: name variants, unmapped values, the QuickBooks memo translation, atypical invoices,
     customers without an account manager, CRM status contradicting billing.
-- Impact of each assumption: the pipeline runs again with the alternative policy and compares the
-  headline metric, so there is no second copy of the logic to drift.
+- Impact of each assumption: the pipeline runs again with the rule reversed and compares one measure
+  chosen per assumption, so there is no second copy of the logic to drift.
 
 **Done when:** tests per detector; flipping an invoice assumption changes the period total by exactly the
 amount of the rows it affects.
@@ -249,6 +250,8 @@ amount of the rows it affects.
   **Monitor**; low or no risk ending within 180 days or expired → **Renewals**; low risk → **Monitor**.
   Shown in the order Act now, Renewals, Monitor, Win back. Healthy auto-renewals hidden by default.
 - For those who stopped billing: confirmed in notes / contract still active / reason unknown.
+- Computed in the LLM step, right after the note signals it needs, and saved with them, so the
+  customer stories and the server read the same worklist.
 
 **Done when:** tests for the matrix, the group rules and their order.
 
@@ -265,7 +268,7 @@ amount of the rows it affects.
 
 ### 11. API, app shell and billing screen
 
-- Hono API that loads the model and the LLM output at start.
+- Hono API that reads the files in `data/build/` and `data/llm/` and serves them; it computes nothing.
 - React app with Vite and Tailwind: layout and navigation.
 - Billing screen: the two windows with and without atypical invoices, monthly chart (partial month
   marked), breakdown by service line, the bridge with the customers behind each step. Definitions
@@ -403,3 +406,25 @@ and −1.2% without atypical invoices; this comparison crosses the system change
 projects. By line, inspection fell from $13.03M to $12.24M and monitoring from $3.50M to $3.05M; credit
 memos went from −$0.09M to −$0.13M. The bridge: 8 customers stopped (−$1.25M), 74 billed less (−$2.62M), 69 more (+$2.06M) and 8
 are new (+$0.38M). 12% of H1 FY27 billing was still open at the export date.
+
+### 6. Data findings
+
+Three more parameters in `config/assumptions.yml`: the days without an invoice that mean a customer
+stopped billing, and the shares of its value below and above which a contract is worth checking.
+`src/analysis/findings.ts` turns each rule into an assumption finding, with the cases it affects and its
+impact, measured by running everything again with the rule reversed; `src/analysis/observations.ts`
+detects the observations. Each finding has a business-language summary and its cases. The detectors are
+tested on a small dataset built to trigger each one; on the real data, reversing each invoice rule moves
+the half total by exactly the invoices it affects, every assumption names its rule and impact, and every
+case points to an existing customer. `npm run pipeline` now saves the billing analysis and the findings
+next to the model, so the server will only read files.
+
+Outcome: 6 assumptions. Duplicate invoices: 45 ($801k), reversed the half would read −3.0% instead of
+−6.8%. Voided: 67 ($1.1M), −6.2%. Credit memos: 150 (−$518k), −6.5%. Duplicate customers: 9 companies,
+billed under both ids in at most 4 of 18 months; kept apart, 9 customers would look like they stopped
+billing instead of 8. Shortened names: 13, linking 15 notes. Impossible contract dates: 6, taken as
+exported 24 current contracts would look ended instead of 18. Worth checking: 9 contracts billed under
+half their value ($1.4M short), 6 customers billed over 1.5 times their contract, 15 expired contracts
+still billing, 4 notes linked to no customer. The jump at the system change (+16.9%) is within the usual
+variation (−26.7% to +25.0%). Informative: 56 name variants, 20 QuickBooks memos, 5 atypical invoices, 15
+customers without an account manager, 7 CRM statuses contradicting billing.
