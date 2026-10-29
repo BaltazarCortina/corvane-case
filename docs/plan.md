@@ -62,7 +62,7 @@ Planned layout:
 | `config/assumptions.yml` | Our criteria: each assumption with its policy, basis and status, plus business parameters |
 | `config/reference.yml` | Mechanical mappings: state and industry spellings, QuickBooks memos to service lines |
 | `data/build/` | Pipeline output. Regenerated, not versioned |
-| `data/llm/` | LLM output. Versioned, because it costs money to produce |
+| `data/llm/` | LLM output and its cache. Regenerated, not versioned |
 | `data/raw/` | The exports exactly as received. Never edited |
 | `docs/` | This plan and the decisions behind the numbers |
 | `eval/` | The hand-labeled note sample |
@@ -92,7 +92,7 @@ for lint and format.
 | 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | Done |
 | 6 | Data findings | Assumptions and observations, impact of each assumption | Done |
 | 7 | Evaluation set | Keyword screen, stratified sample of notes, hand labels || Done |
-| 8 | Note classification | LLM reading each note, with quote verification | |
+| 8 | Note classification | LLM reading each note, with quote verification || Done |
 | 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing | |
 | 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | |
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | |
@@ -232,7 +232,7 @@ sample has a valid label.
     acts; **low** = minor or resolved friction; **none** = routine or positive.
   - Reasons (one or more, only with risk): service, price, competitor, billing, other.
   - Note type: customer, internal, prospect.
-- Cache keyed by prompt version, model and the exact input; results committed in `data/llm/`.
+- Cache keyed by prompt version, model and the exact input; results written to `data/llm/`.
 - Check: every quote must appear verbatim in its note.
 
 **Done when:** every note classified; every quote verbatim.
@@ -462,4 +462,20 @@ A review against the written scale made two kinds of note consistent before the 
 competitor's quote is competitive pressure (medium), and a deficiency list is repairs found on the
 customer's equipment, not a service failure (none). The fire marshal citations stay medium, with a
 comment that high is also defensible.
+
+### 8. Note classification
+
+`src/llm/notes.ts` sends each note on its own to the LLM, with the scale of stage 7 in the instructions,
+and gets back a risk level, reasons, a note type, a quote and a one-line summary, validated with zod.
+The quote is checked in code against the note. `src/llm/provider.ts` is the only file that knows the
+provider (OpenAI, through the Vercel AI SDK); `src/llm/cache.ts` keeps each answer under a key of
+prompt version, model and input. `npm run llm` runs it over every note, eight at a time, and writes
+`data/llm/note-signals.json`. Tests cover the quote check and the clean-up of answers without calling
+the LLM; on the real data, every note has one signal, every risk has a quote found in its note, and
+reasons come only with risk.
+
+Outcome: 263 notes read by `gpt-6-luna` in about 70 seconds. 198 none, 21 low, 30 medium and 14 high;
+every quote found in its note. 3 notes typed as prospects, the same 3 that no customer could be found
+for; 2 internal. Among the high ones, three are fire marshal citations, the case the hand labels left as
+medium with a comment.
 

@@ -264,3 +264,22 @@ drawn and labeled before the LLM runs.
 LLM's answer tends to agree with it. The labels are set by hand, without the group each note was drawn
 from, before the classifier exists. A label off the scale stops the evaluation instead of counting as a
 wrong answer.
+
+### The LLM reads one note at a time
+
+**Criterion.** Each call gets one note, as written, without the customer's other notes or numbers. Every
+answer can then be checked against the note it came from, and scored against a label. Putting a
+customer's notes together, in order and with its billing, is the job of the customer story.
+
+### Every risk comes with a quote found in the note
+
+**Criterion.** The LLM has to quote the part of the note that justifies the risk it gives. The quote is
+checked in code: it must appear in the note, ignoring only case, spacing and quotation marks. A risk
+without a quote found in the note is reported as a failure.
+
+### Answers are cached, not versioned
+
+**Mechanical.** Each answer is stored under a key made of the prompt version, the model and the exact
+text sent. Running again gives the same answers at no cost; changing the prompt, the model or a note asks
+again. Like the pipeline output, the answers are not in the repository: a fresh checkout runs `npm run
+pipeline` and `npm run llm`, as the first time.

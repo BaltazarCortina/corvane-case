@@ -8,6 +8,8 @@ export const paths = {
   raw: `${root}data/raw`,
   build: `${root}data/build`,
   eval: `${root}eval`,
+  llm: `${root}data/llm`,
+  llmCache: `${root}data/llm/cache`,
   reference: `${root}config/reference.yml`,
   assumptions: `${root}config/assumptions.yml`,
 };
