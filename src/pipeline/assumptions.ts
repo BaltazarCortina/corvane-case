@@ -24,7 +24,18 @@ const assignment = z.strictObject({
   evidence: z.string(),
 });
 
+/** Thresholds of the business rules, all our criteria. */
+const parameters = z.strictObject({
+  /** Service lines whose invoices are never atypical, however large. */
+  atypicalInvoiceExcludedLines: z.array(z.string()),
+  /** An invoice in any other line is atypical from this amount... */
+  atypicalInvoiceMinimum: z.number().positive(),
+  /** ...if it is also at least this many times what the customer bills in an average month. */
+  atypicalInvoiceMultiple: z.number().positive(),
+});
+
 const schema = z.strictObject({
+  parameters,
   duplicateCustomers: rule,
   shortenedNoteNames: rule,
   duplicateInvoices: rule,
@@ -37,6 +48,7 @@ const schema = z.strictObject({
 
 export type Assumptions = z.infer<typeof schema>;
 export type Rule = z.infer<typeof rule>;
+export type Parameters = z.infer<typeof parameters>;
 export type Assignment = z.infer<typeof assignment>;
 
 /**

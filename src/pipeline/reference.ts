@@ -1,5 +1,5 @@
-// Reads config/reference.yml: the canonical values for states, industries and service lines,
-// with the spellings each one appears under in the exports.
+// Reads config/reference.yml: facts about Corvane the exports do not carry (its fiscal calendar) and the
+// canonical values for states, industries and service lines, with the spellings each one appears under.
 
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
@@ -8,6 +8,8 @@ import { z } from 'zod';
 const spellings = z.record(z.string(), z.array(z.string()));
 
 const schema = z.object({
+  /** Month the fiscal year starts in, 1 to 12. */
+  fiscalYearStartMonth: z.number().int().min(1).max(12),
   states: spellings,
   industries: spellings,
   serviceLines: spellings,

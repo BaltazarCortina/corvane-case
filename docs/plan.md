@@ -88,7 +88,7 @@ for lint and format.
 | 2 | Parse the exports | Typed rows from the five files, reference mappings | Done |
 | 3 | Resolve customers | Assumptions config, name normalization, duplicate customers, assignments | Done |
 | 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | Done |
-| 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | |
+| 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge || Done |
 | 6 | Data findings | Assumptions and observations, impact of each assumption | |
 | 7 | Note classification | LLM reading each note, with quote verification | |
 | 8 | Evaluation | Hand labels, keyword baseline, cross-check with billing | |
@@ -174,11 +174,12 @@ the counted total, rule by rule, to the cent.
   2027). As-of date is the latest invoice; the last month is partial if it ends before month end.
 - The measure is **net billings**: invoiced, net of credit memos, by invoice date. Never called revenue.
 - Atypical invoices, relative to the customer: not inspection or monitoring, at least $100k, and at
-  least 1.5 times the customer's average month. Both values in config.
+  least 1.5 times the customer's average month. The excluded lines and both thresholds in config.
 - Two windows, always: the last complete half against the same half a year earlier, and the last 12
   months against the 12 before. Each total with and without atypical invoices. A flag when a
   comparison crosses the billing system change.
-- Breakdown by service line, monthly series, unbilled share (NetSuite only, as of the export date).
+- Breakdown by service line, with credit memos as a line of their own; monthly series; unbilled share
+  (NetSuite only, as of the export date).
 - The bridge between the two halves: customers that stopped billing (billed in the earlier period,
   nothing in the later), billing less, billing more, new. Each step lists its customers and how much of
   the change is atypical invoices.
@@ -320,6 +321,9 @@ amount of the rows it affects.
 
 **Further iterations,** not built in this prototype:
 
+- Atypical invoices measured against the customer's average month before each invoice (the previous 6
+  or 12 months) instead of its whole history, so a customer that grows steadily is compared with its
+  current size. Small effect with two and a half years of data; it grows with every export added.
 - Full period and comparison selectors.
 - Editing assumptions from the app, and live reload when the config changes.
 - A warning when a customer story is out of date with its inputs.
@@ -381,3 +385,21 @@ Outcome: QuickBooks $37,389,362.29 in 2,606 rows, all counted; 64 rows ($641,756
 voided ($1,112,279.96) excluded, $60,143,102.64 counted in 4,058 rows. 155 contracts: 2 duplicates and 6
 with an unknown end; no customer has more than one contract, 17 have none. 4 notes linked to no
 customer.
+
+### 5. Billing metrics
+
+`src/analysis/` computes billing over the model: `calendar.ts` (fiscal years and halves, the two
+windows, as functions of the fiscal year's start month in `config/reference.yml`), `billing.ts` (the
+invoices that count, each marked atypical or not with the parameters in `config/assumptions.yml`; totals
+and changes per window; service lines; the monthly series; the open share), `bridge.ts` (the bridge
+between two periods) and `analyze.ts`, which puts it all together. Each rule is tested on fixtures
+(complete and partial periods, a calendar-year fiscal year, the atypical thresholds, the bridge kinds);
+on the real data, both windows compare complete periods, the bridge adds up to the cent and matches the
+half totals, the service lines add up to the totals, and the months add up to everything counted.
+
+Outcome: data as of 2026-09-30. H1 FY27 against H1 FY26: $21.07M to $19.64M (−6.8%); without atypical
+invoices, $20.88M to $19.10M (−8.5%). Twelve months to September 2026 against the twelve before: +0.8%,
+and −1.2% without atypical invoices; this comparison crosses the system change. 5 atypical invoices, all
+projects. By line, inspection fell from $13.03M to $12.24M and monitoring from $3.50M to $3.05M; credit
+memos went from −$0.09M to −$0.13M. The bridge: 8 customers stopped (−$1.25M), 74 billed less (−$2.62M), 69 more (+$2.06M) and 8
+are new (+$0.38M). 12% of H1 FY27 billing was still open at the export date.

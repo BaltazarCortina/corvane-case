@@ -4,6 +4,7 @@ import type { Reference } from '../../src/pipeline/reference';
 import { exportsWith } from '../fixtures';
 
 const reference: Reference = {
+  fiscalYearStartMonth: 4,
   states: { OH: ['Ohio'] },
   industries: { Retail: [] },
   serviceLines: { Repair: ['Valve repair'], Monitoring: ['Monitoring - monthly'] },

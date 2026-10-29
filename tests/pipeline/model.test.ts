@@ -6,9 +6,10 @@ import type { Reference } from '../../src/pipeline/reference';
 import { assumptionsWith, exportsWith } from '../fixtures';
 
 const reference: Reference = {
+  fiscalYearStartMonth: 4,
   states: {},
   industries: {},
-  serviceLines: { Repair: ['Valve repair'], 'Unallocated credit': ['Credit memo'] },
+  serviceLines: { Repair: ['Valve repair'], 'Credit memos': ['Credit memo'] },
 };
 
 const raw: RawExports = exportsWith({
@@ -73,6 +74,15 @@ describe('invoices', () => {
     const assumptions = assumptionsWith({ creditMemos: { applies: false } });
     const credit = modelWith(assumptions).invoices.find((i) => i.amount < 0);
     expect(credit?.excludedBy).toBe('credit');
+  });
+});
+
+describe('parameters', () => {
+  it('reports an excluded line that is not a service line', () => {
+    const known = assumptionsWith({ parameters: { atypicalInvoiceExcludedLines: ['Repair'] } });
+    const typo = assumptionsWith({ parameters: { atypicalInvoiceExcludedLines: ['Repairs'] } });
+    expect(modelWith(known).configProblems).toEqual([]);
+    expect(modelWith(typo).configProblems).toEqual(['atypical invoice excluded line Repairs is not a service line']);
   });
 });
 

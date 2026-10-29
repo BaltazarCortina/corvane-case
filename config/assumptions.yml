@@ -4,6 +4,15 @@
 # still needs Corvane's answer. `exceptions` lists the keys of single cases where the opposite of
 # the rule holds.
 
+parameters:
+  # An invoice is atypical when its service line is not one of these, it is at least this amount, and
+  # it is at least this many times what the customer bills in an average month. Totals are shown with
+  # and without atypical invoices, so a one-off project does not hide or fake a trend. Inspection and
+  # monitoring are billed on a schedule, so a large one is a large customer, not a one-off.
+  atypicalInvoiceExcludedLines: [Inspection & Testing, Monitoring]
+  atypicalInvoiceMinimum: 100000
+  atypicalInvoiceMultiple: 1.5
+
 duplicateCustomers:
   # CRM records with the same normalized name in the same city and state are one customer. Records
   # that share a name but not the location are kept apart as possible duplicates. Case key: the CRM

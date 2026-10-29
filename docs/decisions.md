@@ -41,7 +41,7 @@ one value. A value with no mapping is kept as exported and reported, never dropp
 **Criterion.** Set by `serviceLines` in `config/reference.yml`. NetSuite records a service line on every
 invoice; QuickBooks only has a free-text memo. Each memo is assigned to the service line that describes
 the same work, so both systems can be compared by line. QuickBooks credit memos name no service, so they
-get a line of their own, "Unallocated credit".
+are mapped to "Credit memos".
 
 ### A value that cannot be read stops the pipeline
 
@@ -138,3 +138,60 @@ current contract.
 
 **Criterion.** A renewal starts after the contract it renews, so when a customer has several contracts,
 the one with the latest start is the current one.
+
+## Measuring billing
+
+### The measure is net billings, never revenue
+
+**Criterion.** Invoiced amounts that count, net of credit memos, by invoice date. The exports have
+invoice dates, not the dates the service was delivered, so the app does not call it revenue. For a
+business billed mostly monthly, over three months or more it follows the same trend.
+
+### The fiscal year runs from April to March
+
+**Mechanical.** Set by `fiscalYearStartMonth` in `config/reference.yml`, from the note that came with the
+exports. A fiscal year is named by the year it ends in: FY27 runs from April 2026 to March 2027.
+
+### Credit memos are a line of their own
+
+**Criterion.** In the breakdown by service line, every credit memo is reported under "Credit memos",
+whatever line the billing system gave it. QuickBooks credit memos have no service line and NetSuite ones
+come as inspection; keeping NetSuite's would put credits inside inspection on one side of the system
+change and outside it on the other.
+
+### The data runs up to the latest invoice
+
+**Criterion.** The as-of date is the date of the latest invoice. A period counts as complete only once
+the as-of date reaches its last day, and a month the as-of date falls in before its end is marked as
+partial, so a mid-month export does not look like a drop.
+
+### Every comparison uses two windows
+
+**Criterion.** The last complete fiscal half against the same half a year earlier, because the business
+is seasonal and the first half bills more than the second; and the last twelve months against the twelve
+before, to show the most recent trend. A comparison is flagged when one side has invoices from QuickBooks
+and the other from NetSuite.
+
+### Totals are shown with and without atypical invoices
+
+**Criterion.** Set by `atypicalInvoiceExcludedLines`, `atypicalInvoiceMinimum` and
+`atypicalInvoiceMultiple` in `config/assumptions.yml`. An invoice is atypical when its service line is
+not inspection or monitoring, it is at least $100k, and it is at least 1.5 times what its customer bills
+in an average month (from its first invoice to its last). Inspection and monitoring are billed on a
+schedule, so a large one means a large customer, not a one-off. A fixed amount alone would flag routine
+work of the largest customers; relative to the customer, it catches one-off projects.
+
+Known limit: the average month covers the customer's whole history, so for a customer that grows steadily
+it lags behind its current size. With two and a half years of data the effect is small; with more
+history, the average should cover the months before each invoice (see the next steps in the plan).
+
+### The bridge sorts customers by what happened between the two halves
+
+**Criterion.** Stopped: invoiced in the earlier half and not at all in the later one. New: the reverse.
+Otherwise billing less or more. Invoices with no customer move together as one more line, so the steps
+always add up to the change. Each customer shows how much of its change comes from atypical invoices.
+
+### Open amounts come from NetSuite only
+
+**Criterion.** The share of a period still open when the data was exported is computed from NetSuite,
+which keeps collection status up to date. QuickBooks statuses stopped changing at the system change.

@@ -1,6 +1,10 @@
-# Reference data for reading the exports: each canonical value with the spellings it appears
-# under. Lookups ignore case, so `retail` already matches `Retail`. A value not listed here is
-# kept as exported and reported by the pipeline, never dropped.
+# Reference data: facts about Corvane the exports do not carry, and each canonical value with the
+# spellings it appears under. Lookups ignore case, so `retail` already matches `Retail`. A value not
+# listed here is kept as exported and reported by the pipeline, never dropped.
+
+# The fiscal year runs from April to March (README from Corvane's IT contractor). A fiscal year is
+# named by the calendar year it ends in: FY27 runs from April 2026 to March 2027.
+fiscalYearStartMonth: 4
 
 states:
   OH: [Oh., Ohio]
@@ -19,7 +23,8 @@ industries:
 
 # NetSuite records a service line on every invoice; QuickBooks only a free-text memo. Each
 # memo is assigned to the NetSuite service line that describes the same work. QuickBooks
-# credit memos name no service, so they get a line of their own.
+# credit memos name no service, so they get a line of their own, the one every credit memo is
+# reported under.
 serviceLines:
   Inspection & Testing:
     - Inspection & testing - monthly
@@ -45,5 +50,5 @@ serviceLines:
     - Sprinkler retrofit - progress billing
     - Alarm panel replacement project
     - Suppression system install
-  Unallocated credit:
+  Credit memos:
     - Credit memo - billing adjustment
