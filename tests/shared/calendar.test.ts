@@ -8,6 +8,7 @@ import {
   lastCompleteHalf,
   monthEnd,
   monthsBetween,
+  rangeLabel,
   twelveMonthWindow,
 } from '../../src/shared/calendar';
 
@@ -75,5 +76,16 @@ describe('twelve-month window', () => {
 describe('dayLabel', () => {
   it('writes a date the way people read it', () => {
     expect(dayLabel('2026-01-05')).toBe('Jan 5, 2026');
+  });
+});
+
+describe('rangeLabel', () => {
+  it('names a range of months, with the year once when it does not change', () => {
+    expect(rangeLabel('2026-04', '2026-06')).toBe('Apr–Jun 2026');
+    expect(rangeLabel('2025-11', '2026-01')).toBe('Nov 2025–Jan 2026');
+  });
+
+  it('can write the year short, for a chart axis', () => {
+    expect(rangeLabel('2026-04', '2026-06', true)).toBe('Apr–Jun 26');
   });
 });

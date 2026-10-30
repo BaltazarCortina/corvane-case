@@ -5,9 +5,11 @@ import { BillingPage } from './billing/BillingPage';
 import { CustomerPanel } from './customer/CustomerPanel';
 import { DataPage } from './data/DataPage';
 import { hrefOf, useRoute } from './route';
+import { SummaryPage } from './summary/SummaryPage';
 import { WorklistPage } from './worklist/WorklistPage';
 
 const SCREENS = [
+  { path: 'summary', label: 'Summary', render: () => <SummaryPage /> },
   { path: 'billing', label: 'Billing', render: () => <BillingPage /> },
   { path: 'worklist', label: 'Worklist', render: () => <WorklistPage /> },
   { path: 'data', label: 'Data', render: () => <DataPage /> },

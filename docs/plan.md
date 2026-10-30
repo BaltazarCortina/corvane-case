@@ -113,7 +113,7 @@ for lint and format.
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | Done |
 | 13 | Worklist and customer panel | The worklist and the customer detail | Done |
 | 14 | Data screen | Where the numbers hold, open questions and assumptions | Done |
-| 15 | Summary screen | The three answers on one screen | |
+| 15 | Summary screen | Billing and the customers at risk on one screen | Done |
 | 16 | Fine-tuning | Manual assignments and exceptions for single cases | |
 | 17 | README | How to run it, how it works, AI tools used, next steps | |
 
@@ -329,10 +329,11 @@ reads as medium (stage 9) do not change any customer's group.
 
 ### 15. Summary screen
 
-- The three answers on one screen: net billings for the last complete half with and without atypical
-  invoices, plus the 12-month line; Act now (customers and amount at stake) with up to ten of them;
-  renewals; data status (do the exports reconcile, how many assumptions await confirmation). An
-  18-month chart.
+- The landing screen, first in the navigation, in two columns. Billing for the last complete half,
+  with and without atypical invoices, plus the twelve months, a line written by code from the bridge
+  on why it moved, and the last 18 months of billing by quarter. Act now: what to know about those customers (the largest and
+  its share, how many contracts ended or end soon, who owns them), Win back and renewals, and up to ten
+  of them. Each card leads to its screen. The data is not on it: it is read once, on its own screen.
 
 ### 16. Fine-tuning
 
@@ -665,3 +666,24 @@ is left out; 66 of the 146 customers still billing ($11.9M at stake) have no acc
 Five items are open questions, and five are assumptions decided on the evidence: duplicate invoices (the
 half at −3.0% instead of −6.8% the other way), voided invoices (−6.2%), credit memos (−6.5%), duplicate
 customers and shortened names.
+
+### 15. Summary screen
+
+The summary is the landing screen and the first in the navigation, in two columns: the two cards side by
+side at the same height, each with its detail below it. Billing: the last complete half with and without
+atypical invoices and the twelve months, a line written by code, not by the LLM, on why it moved (the two
+bridge steps that moved it the same way, the largest first), and billing over the last eighteen months by
+quarter, the chart of the billing screen in a compact form, its quarters aligned with the halves
+compared. Act now: the customers, the amount at stake and what to know about them instead of a large
+number (the largest customer and its share, how many contracts already ended or end within 90 days, who
+owns them, the same as at the top of the worklist), Win back and renewals, then up to ten of them, each
+opening its panel. The data screen is not summarized here: it is read once and then out of the way. In
+both billing charts the system change falls between two months, and it is marked only when the chart
+reaches back past it. The billing card names the half its figure is for. Tests cover the line on why
+billing moved.
+
+Outcome: H1 FY27 at $19.6M, −6.8%, "down mostly from 74 customers billing less (−$2.6M) and 8 customers
+that stopped billing (−$1.3M)". Act now: 14 customers and $5.2M at stake, 64% of it Halloran Health
+Partners ($3.3M, contract ending in 31 days); 8 contracts already ended and 5 end within 90 days; D.
+Hargrove owns 6 of them. Win back holds 12 customers ($3.7M), and 11 contracts are ending soon or already
+ended, besides the healthy auto-renewals.

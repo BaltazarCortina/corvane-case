@@ -32,6 +32,19 @@ export function monthLabel(month: string): string {
   return `${MONTH_NAMES[m - 1]} ${year}`;
 }
 
+/**
+ * `Apr–Jun 2026` for `2026-04` to `2026-06`; `Nov 2025–Jan 2026` across a year. With a short year, `Apr–Jun
+ * 26`, for a chart axis where room is short.
+ */
+export function rangeLabel(fromMonth: string, toMonth: string, shortYear = false): string {
+  const [fromYear, fromNumber] = fromMonth.split('-').map(Number);
+  const [toYear, toNumber] = toMonth.split('-').map(Number);
+  const from = MONTH_NAMES[fromNumber - 1];
+  const to = MONTH_NAMES[toNumber - 1];
+  const year = (y: number) => (shortYear ? String(y).slice(-2) : String(y));
+  return fromYear === toYear ? `${from}–${to} ${year(toYear)}` : `${from} ${year(fromYear)}–${to} ${year(toYear)}`;
+}
+
 /** `Jan 25, 2026` for `2026-01-25`. */
 export function dayLabel(iso: string): string {
   const [year, m, day] = iso.split('-').map(Number);
