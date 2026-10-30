@@ -7,7 +7,7 @@ import type { Bridge, BridgeKind, BridgeStep } from '../../../src/billing/bridge
 import type { CustomerRecord } from '../../../src/model/model';
 import { count, usd } from '../../../src/shared/format';
 import { sumMoney } from '../../../src/shared/money';
-import { Change } from '../components/Change';
+import { Change, ChangeAmount } from '../components/Change';
 import { CustomerLink } from '../components/CustomerLink';
 
 const STEP_LABELS: Record<BridgeKind, string> = {
@@ -37,7 +37,7 @@ export function BridgeView({ bridge, customers }: { bridge: Bridge; customers: C
       <div>
         <p className="mb-3 text-sm">
           {usd(bridge.previous)} <span className="text-ink-muted">→</span> {usd(bridge.current)}{' '}
-          <Change pct={changePct} className="text-ink-secondary" />
+          <Change pct={changePct} />
         </p>
         <div role="tablist" aria-label="Bridge steps" className="space-y-1">
           {bridge.steps.map((s) => (
@@ -83,9 +83,7 @@ function StepButton({
           <span className="ml-1.5 text-ink-muted text-xs">{step.movers.length}</span>
         </span>
         <span className="flex items-center gap-2">
-          <span className={`tabular-nums ${selected ? 'font-semibold' : 'text-ink-secondary'}`}>
-            {signed(step.change)}
-          </span>
+          <ChangeAmount amount={step.change} className={`tabular-nums ${selected ? 'font-semibold' : ''}`} />
           <span aria-hidden className={`text-xs ${selected ? 'text-ink' : 'text-ink-muted'}`}>
             ›
           </span>
@@ -115,10 +113,8 @@ function MoverList({ step, names }: { step: BridgeStep; names: Map<string, strin
     <div className="rounded-xl border border-hairline bg-surface p-5" role="tabpanel">
       <p className="text-sm">
         <span className="font-medium">{STEP_LABELS[step.kind]}</span>
-        <span className="text-ink-secondary">
-          {' '}
-          · {count(step.movers.length, 'customer')} · {signed(step.change)}
-        </span>
+        <span className="text-ink-secondary"> · {count(step.movers.length, 'customer')} · </span>
+        <ChangeAmount amount={step.change} className="font-medium" />
       </p>
       <div className={showAll ? 'mt-3 max-h-96 overflow-y-auto' : 'mt-3'}>
         <table className="w-full text-sm">
@@ -143,7 +139,9 @@ function MoverList({ step, names }: { step: BridgeStep; names: Map<string, strin
                 </td>
                 <td className="py-1.5 text-right text-ink-secondary">{usd(m.previous)}</td>
                 <td className="py-1.5 text-right text-ink-secondary">{usd(m.current)}</td>
-                <td className="py-1.5 text-right font-medium">{signed(m.change)}</td>
+                <td className="py-1.5 text-right font-medium">
+                  <ChangeAmount amount={m.change} />
+                </td>
                 {anyAtypical && (
                   <td className="py-1.5 text-right text-ink-secondary">
                     {m.atypicalChange === 0 ? '–' : signed(m.atypicalChange)}

@@ -105,9 +105,9 @@ for lint and format.
 | 4 | Unified model | One invoice table for both systems, contracts, notes, one record per customer | Done |
 | 5 | Billing metrics | Fiscal calendar, net billings, atypical invoices, two windows, the bridge | Done |
 | 6 | Data findings | Assumptions and observations, impact of each assumption | Done |
-| 7 | Evaluation set | Keyword screen, stratified sample of notes, hand labels || Done |
-| 8 | Note classification | LLM reading each note, with quote verification || Done |
-| 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing || Done |
+| 7 | Evaluation set | Keyword screen, stratified sample of notes, hand labels | Done |
+| 8 | Note classification | LLM reading each note, with quote verification | Done |
+| 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing | Done |
 | 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | Done |
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | Done |
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | Done |
@@ -687,3 +687,4 @@ that stopped billing (−$1.3M)". Act now: 14 customers and $5.2M at stake, 64% 
 Partners ($3.3M, contract ending in 31 days); 8 contracts already ended and 5 end within 90 days; D.
 Hargrove owns 6 of them. Win back holds 12 customers ($3.7M), and 11 contracts are ending soon or already
 ended, besides the healthy auto-renewals.
+

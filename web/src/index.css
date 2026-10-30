@@ -14,8 +14,11 @@
   --color-baseline: #c3c2b7;
   --color-series-1: #2a78d6;
   --color-series-2: #eb6834;
-  --color-up: #2a78d6;
+  /* Up and down: green and red, on marks and, in darker steps that read well as text, on numbers. */
+  --color-up: #0ca30c;
   --color-down: #e34948;
+  --color-up-text: #006300;
+  --color-down-text: #c42f2f;
   --color-neutral: #52514e;
   --color-good: #0ca30c;
   /* Risk levels: status colors for high and medium, blue for low. Always shown with their name. */

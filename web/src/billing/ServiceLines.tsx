@@ -2,8 +2,9 @@
 
 import type { LineTotal } from '../../../src/billing/billing';
 import type { Window } from '../../../src/shared/calendar';
-import { percent, usd } from '../../../src/shared/format';
+import { usd } from '../../../src/shared/format';
 import { sumMoney } from '../../../src/shared/money';
+import { Change, ChangeAmount } from '../components/Change';
 
 export function ServiceLines({ lines, window }: { lines: LineTotal[]; window: Window }) {
   const previous = sumMoney(lines.map((l) => l.previous));
@@ -30,8 +31,12 @@ export function ServiceLines({ lines, window }: { lines: LineTotal[]; window: Wi
               <td className="py-1.5">{l.serviceLine}</td>
               <td className="py-1.5 text-right">{usd(l.previous)}</td>
               <td className="py-1.5 text-right">{usd(l.current)}</td>
-              <td className="py-1.5 text-right">{change > 0 ? `+${usd(change)}` : usd(change)}</td>
-              <td className="py-1.5 text-right text-ink-secondary">{percent(changePct)}</td>
+              <td className="py-1.5 text-right">
+                <ChangeAmount amount={change} />
+              </td>
+              <td className="py-1.5 text-right">
+                <Change pct={changePct} />
+              </td>
             </tr>
           );
         })}

@@ -16,7 +16,7 @@ export function InfoTip({ term, children }: { term: string; children: ReactNode 
       </button>
       <span
         role="tooltip"
-        className="invisible absolute top-full left-0 z-20 mt-2 w-80 rounded-md border border-hairline bg-surface p-3 font-normal text-ink-secondary text-xs leading-relaxed opacity-0 shadow-md transition-opacity group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+        className="hidden absolute top-full left-0 z-20 mt-2 w-80 rounded-md border border-hairline bg-surface p-3 font-normal text-ink-secondary text-xs leading-relaxed shadow-md group-focus-within:block group-hover:block"
       >
         {children}
       </span>
