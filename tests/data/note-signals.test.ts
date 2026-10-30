@@ -3,9 +3,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { NoteSignal } from '../../src/llm/notes';
+import { build, loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
-import { build, loadInputs } from '../../src/pipeline/build';
+import type { NoteSignal } from '../../src/risk/notes';
 
 const signalsFile = join(paths.llm, 'note-signals.json');
 

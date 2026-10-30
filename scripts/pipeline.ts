@@ -3,11 +3,11 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { analyze } from '../src/analysis/analyze';
-import { detectFindings, type Finding } from '../src/analysis/findings';
+import { analyze } from '../src/billing/analyze';
+import { detectFindings, type Finding } from '../src/findings/findings';
+import { loadInputs } from '../src/model/build';
+import type { Model, Tally } from '../src/model/model';
 import { paths } from '../src/paths';
-import { loadInputs } from '../src/pipeline/build';
-import type { Model, Tally } from '../src/pipeline/model';
 
 const inputs = loadInputs(paths);
 const built = analyze(inputs);

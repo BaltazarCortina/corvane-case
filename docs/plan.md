@@ -55,7 +55,13 @@ config/*.yml ────┴─► npm run pipeline ──► data/build/   mode
                      API (Hono) ──► web (React): Summary · Billing · Worklist · Data
 ```
 
-Planned layout:
+The code is organized by what it answers, not by the command that runs it: which step computes what is
+decided by the entry points in `scripts/`, and moves when a step needs another's output (the worklist
+needs the LLM's reading of the notes, so it runs in `npm run llm`). Dependencies point one way: `shared`
+is used by everything; `billing` reads the `model`; `findings` and `risk` read both; `stories` reads all
+of them; `llm` is infrastructure for `risk` and `stories`; `eval` judges `risk`.
+
+Layout:
 
 | Path | Contents |
 |---|---|
@@ -67,11 +73,15 @@ Planned layout:
 | `docs/` | This plan and the decisions behind the numbers |
 | `eval/` | The hand-labeled note sample |
 | `scripts/` | Command line entry points (pipeline, LLM, evaluation) |
-| `src/analysis/` | Billing metrics, data findings, risk and worklist, computed over the model |
-| `src/eval/` | Scoring against hand labels and the keyword baseline |
-| `src/llm/` | Note classification and customer stories, with their verifiers |
-| `src/pipeline/` | Parsing, customer resolution and the unified model |
+| `src/billing/` | Net billings: atypical invoices, the two windows, service lines, the bridge |
+| `src/eval/` | Scoring the LLM's reading of the notes against hand labels and the keyword baseline |
+| `src/findings/` | Data findings: assumptions with their impact, and observations |
+| `src/llm/` | The LLM provider and the answer cache |
+| `src/model/` | Parsing, customer resolution and the unified model |
+| `src/risk/` | The note risk scale, the LLM's reading of each note, the risk level and the worklist |
 | `src/server/` | The API |
+| `src/shared/` | Dates and fiscal periods, money arithmetic, numbers as the app writes them |
+| `src/stories/` | Customer stories: the facts they are written from and the citation verifier |
 | `tests/` | Unit tests, mirroring `src/`, on small fixtures built for each case |
 | `tests/data/` | Invariants on the real exports: totals that must reconcile, rows that must all be accounted for |
 | `web/` | The React app |
@@ -367,7 +377,7 @@ Built the tooling, copied the exports and wrote this plan. `npm run verify` pass
 ### 2. Parse the exports
 
 Each export is read with its line numbers and checked for the columns the pipeline uses, then parsed
-into typed rows (`src/pipeline/`). Value parsers, reference lookups and each file's rules are tested on
+into typed rows (`src/model/`). Value parsers, reference lookups and each file's rules are tested on
 small fixtures; the real exports are checked for three invariants: every line is a parsed row or a known
 non-data line, QuickBooks invoices add up to the export's own TOTAL row, and the reference data covers
 every value.
@@ -382,7 +392,7 @@ NetSuite.
 `config/assumptions.yml` holds the first two rules (duplicate customers and shortened note names), each
 with `applies`, `confirmed`, `basis` and optional exceptions, plus a list of manual assignments, empty
 for now. It is validated with zod: a wrong type, a missing field or a misspelled key fails with its path.
-`src/pipeline/resolve.ts` builds the customers and links every id and name to one of them, in this
+`src/model/resolve.ts` builds the customers and links every id and name to one of them, in this
 order: assignments, exact names, normalized names and, for notes only, unique shortened names. Rules,
 exceptions and assignments are tested on fixtures, including names that must not match ("Halloran
 Academy" against "Halloran Health Partners") and an ambiguous shortened name. On the real data, every id
@@ -398,10 +408,10 @@ Row", which fits two customers and keeps both as candidates.
 ### 4. Unified model
 
 Four more rules in `config/assumptions.yml`: duplicate invoices, voided invoices, credit memos and
-impossible contract dates. `src/pipeline/model.ts` puts the invoices of both systems in one table, each
+impossible contract dates. `src/model/model.ts` puts the invoices of both systems in one table, each
 with its customer and either counted or excluded by the first rule that applies; links contracts and
 notes; gives each customer the names and ids it appears under and its current contract; and reconciles
-each export from its total to the counted one, rule by rule. `src/pipeline/build.ts` chains parse,
+each export from its total to the counted one, rule by rule. `src/model/build.ts` chains parse,
 resolve and model into one function, and `npm run pipeline` writes `data/build/model.json` with a
 summary. Each rule, its exceptions and turning it off are tested on fixtures; on the real data, each
 export reconciles to the cent, the QuickBooks total matches its TOTAL row, and every invoice and
@@ -415,11 +425,11 @@ customer.
 
 ### 5. Billing metrics
 
-`src/analysis/` computes billing over the model: `calendar.ts` (fiscal years and halves, the two
-windows, as functions of the fiscal year's start month in `config/reference.yml`), `billing.ts` (the
-invoices that count, each marked atypical or not with the parameters in `config/assumptions.yml`; totals
-and changes per window; service lines; the monthly series; the open share), `bridge.ts` (the bridge
-between two periods) and `analyze.ts`, which puts it all together. Each rule is tested on fixtures
+`src/billing/` computes billing over the model, on the periods of `src/shared/calendar.ts` (fiscal
+years and halves, the two windows, as functions of the fiscal year's start month in
+`config/reference.yml`): `billing.ts` (the invoices that count, each marked atypical or not with the
+parameters in `config/assumptions.yml`; totals and changes per window; service lines; the monthly series;
+the open share), `bridge.ts` (the bridge between two periods) and `analyze.ts`, which puts it all together. Each rule is tested on fixtures
 (complete and partial periods, a calendar-year fiscal year, the atypical thresholds, the bridge kinds);
 on the real data, both windows compare complete periods, the bridge adds up to the cent and matches the
 half totals, the service lines add up to the totals, and the months add up to everything counted.
@@ -435,8 +445,8 @@ are new (+$0.38M). 12% of H1 FY27 billing was still open at the export date.
 
 Three more parameters in `config/assumptions.yml`: the days without an invoice that mean a customer
 stopped billing, and the shares of its value below and above which a contract is worth checking.
-`src/analysis/findings.ts` turns each rule into an assumption finding, with the cases it affects and its
-impact, measured by running everything again with the rule reversed; `src/analysis/observations.ts`
+`src/findings/findings.ts` turns each rule into an assumption finding, with the cases it affects and its
+impact, measured by running everything again with the rule reversed; `src/findings/observations.ts`
 detects the observations. Each finding has a business-language summary and its cases. The detectors are
 tested on a small dataset built to trigger each one; on the real data, reversing each invoice rule moves
 the half total by exactly the invoices it affects, every assumption names its rule and impact, and every
@@ -455,7 +465,7 @@ customers without an account manager, 7 CRM statuses contradicting billing.
 
 ### 7. Evaluation set
 
-`src/eval/scale.ts` defines the scale a note is judged on, shared by the labels and the LLM.
+`src/risk/scale.ts` defines the scale a note is judged on, shared by the labels and the LLM.
 `src/eval/keywords.ts` is the keyword screen; `src/eval/sample.ts` draws 20 notes at random from each
 group it makes, with a fixed seed; `npm run eval:sample` writes them to `eval/label-sample.csv`, without
 the group, for labeling as `eval/labels.csv` (instructions in `eval/README.md`). `src/eval/labels.ts`
@@ -473,7 +483,7 @@ comment that high is also defensible.
 
 ### 8. Note classification
 
-`src/llm/notes.ts` sends each note on its own to the LLM, with the scale of stage 7 in the instructions,
+`src/risk/notes.ts` sends each note on its own to the LLM, with the scale of stage 7 in the instructions,
 and gets back a risk level, reasons, a note type, a quote and a one-line summary, validated with zod.
 The quote is checked in code against the note. `src/llm/provider.ts` is the only file that knows the
 provider (OpenAI, through the Vercel AI SDK); `src/llm/cache.ts` keeps each answer under a key of
@@ -492,7 +502,7 @@ medium with a comment.
 `src/eval/score.ts` scores readings against the hand labels, each labeled note weighted by the notes of
 its group it stands for; `src/eval/evaluate.ts` builds the report: the LLM against the labels, the
 keyword screen as a baseline, the confusion between levels, every disagreement, and the billing check,
-which groups customers by the highest risk in their notes (`src/analysis/noteRisk.ts`) and compares
+which groups customers by the highest risk in their notes (`src/risk/noteRisk.ts`) and compares
 their billing between the two halves. `npm run eval` writes `data/llm/eval-report.json` with the model,
 prompt version and date. Tests cover the weighting, the scores and the highest risk per customer; on the
 real data, every labeled note is scored and the groups add up to all the notes.
@@ -521,8 +531,8 @@ why billing has its own weight in the risk level.
 
 Seven more parameters in `config/assumptions.yml`: the minimum drop and the three shares that grade a
 billing decline, the two renewal horizons and the months a lost customer is worth winning back, checked
-to be in order. `src/analysis/risk.ts` grades the decline and combines it with the worst note in a matrix,
-with a one-line reason per level; `src/analysis/worklist.ts` gives every customer its billing status,
+to be in order. `src/risk/risk.ts` grades the decline and combines it with the worst note in a matrix,
+with a one-line reason per level; `src/risk/worklist.ts` gives every customer its billing status,
 risk, renewal, amount at stake and, for those that stopped, why, and places it in a group by the first
 rule that matches. `npm run llm` builds it right after the note signals and writes
 `data/llm/worklist.json`, in the order it is shown. Tests cover the matrix, the decline thresholds and
@@ -542,11 +552,11 @@ an ended contract have auto-renewal: a question for Corvane on how renewals are 
 
 ### 11. Customer stories
 
-`src/llm/facts.ts` computes the numbered facts of a customer: profile, billing status, risk, contract,
+`src/stories/facts.ts` computes the numbered facts of a customer: profile, billing status, risk, contract,
 amount at stake, both windows, service lines, months and its data findings, with amounts written the way
-the app writes them. `src/llm/stories.ts` picks the customers that get a story and sends the LLM their
+the app writes them. `src/stories/stories.ts` picks the customers that get a story and sends the LLM their
 facts and notes, oldest first; the answer is a headline, a trajectory, and the root cause, current state
-and suggested next step, each citing facts and notes. `src/llm/verify.ts` checks every citation, amount,
+and suggested next step, each citing facts and notes. `src/stories/verify.ts` checks every citation, amount,
 percentage and date against what the claim cites. `npm run llm` writes the stories, each with its facts
 and its check, to `data/llm/stories.json`. Tests cover the verifier (missing and unknown citations,
 numbers and dates not in the cited sources, the headline), the choice of customers, the order of the

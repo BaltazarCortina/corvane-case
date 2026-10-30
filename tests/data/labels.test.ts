@@ -6,8 +6,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadLabels } from '../../src/eval/labels';
 import { drawSample } from '../../src/eval/sample';
+import { build, loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
-import { build, loadInputs } from '../../src/pipeline/build';
 
 const labelsFile = join(paths.eval, 'labels.csv');
 

@@ -4,8 +4,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { drawSample } from '../src/eval/sample';
+import type { Model } from '../src/model/model';
 import { paths } from '../src/paths';
-import type { Model } from '../src/pipeline/model';
 
 const modelJson = readFileSync(join(paths.build, 'model.json'), 'utf8');
 const model: Model = JSON.parse(modelJson);

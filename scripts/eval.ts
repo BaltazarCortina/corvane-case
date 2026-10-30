@@ -3,12 +3,12 @@
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { BillingAnalysis } from '../src/analysis/analyze';
+import type { BillingAnalysis } from '../src/billing/analyze';
 import { type EvaluationReport, evaluate } from '../src/eval/evaluate';
 import { loadLabels } from '../src/eval/labels';
-import type { NoteSignal } from '../src/llm/notes';
+import type { Model } from '../src/model/model';
 import { paths } from '../src/paths';
-import type { Model } from '../src/pipeline/model';
+import type { NoteSignal } from '../src/risk/notes';
 
 const readJson = <T>(file: string): T => {
   const text = readFileSync(file, 'utf8');

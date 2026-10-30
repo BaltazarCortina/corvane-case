@@ -1,14 +1,14 @@
 // How well the LLM reads the account notes, three ways: against the hand labels, against the keyword
 // screen as a baseline, and against billing, which no label or prompt can influence.
 
-import type { BillingAnalysis } from '../analysis/analyze';
-import { worstNoteRiskByCustomer } from '../analysis/noteRisk';
-import type { NoteSignal } from '../llm/notes';
-import type { Model, Note } from '../pipeline/model';
+import type { BillingAnalysis } from '../billing/analyze';
+import type { Model, Note } from '../model/model';
+import { worstNoteRiskByCustomer } from '../risk/noteRisk';
+import type { NoteSignal } from '../risk/notes';
+import { isAtRisk, RISK_LEVELS, type RiskLevel } from '../risk/scale';
 import { mentionsRiskWord } from './keywords';
 import type { Label } from './labels';
 import { type Stratum, stratumOf } from './sample';
-import { isAtRisk, RISK_LEVELS, type RiskLevel } from './scale';
 import { type AtRiskScore, type ReadingScore, scoreAtRisk, scoreReadings, type Weighted } from './score';
 
 export interface Disagreement {

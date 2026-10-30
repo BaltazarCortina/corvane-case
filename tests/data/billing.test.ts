@@ -1,10 +1,10 @@
 // Invariants on the billing analysis of the real exports.
 
 import { describe, expect, it } from 'vitest';
-import { analyzeBilling } from '../../src/analysis/analyze';
+import { analyzeBilling } from '../../src/billing/analyze';
+import { build, loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
-import { build, loadInputs } from '../../src/pipeline/build';
-import { sumMoney } from '../../src/pipeline/money';
+import { sumMoney } from '../../src/shared/money';
 
 const inputs = loadInputs(paths);
 const model = build(inputs);

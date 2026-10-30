@@ -4,18 +4,18 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { BillingAnalysis } from '../src/analysis/analyze';
-import { billedInvoices } from '../src/analysis/billing';
-import type { Finding } from '../src/analysis/findings';
-import { buildWorklist, WORKLIST_GROUPS, type Worklist } from '../src/analysis/worklist';
-import { RISK_LEVELS } from '../src/eval/scale';
+import type { BillingAnalysis } from '../src/billing/analyze';
+import { billedInvoices } from '../src/billing/billing';
+import type { Finding } from '../src/findings/findings';
 import { mapLimit } from '../src/llm/cache';
-import { classifyNote, type NoteSignal } from '../src/llm/notes';
 import { llmFromEnv } from '../src/llm/provider';
-import { type CustomerStory, storyInputs, writeStory } from '../src/llm/stories';
+import { loadAssumptions } from '../src/model/assumptions';
+import type { Model } from '../src/model/model';
 import { paths } from '../src/paths';
-import { loadAssumptions } from '../src/pipeline/assumptions';
-import type { Model } from '../src/pipeline/model';
+import { classifyNote, type NoteSignal } from '../src/risk/notes';
+import { RISK_LEVELS } from '../src/risk/scale';
+import { buildWorklist, WORKLIST_GROUPS, type Worklist } from '../src/risk/worklist';
+import { type CustomerStory, storyInputs, writeStory } from '../src/stories/stories';
 
 const llm = llmFromEnv();
 if (!llm) {

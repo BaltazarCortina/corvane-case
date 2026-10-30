@@ -4,7 +4,7 @@
 // fixed seed, so it can be repeated; and it does not depend on the LLM, so the labels can be set before
 // the LLM runs.
 
-import type { Note } from '../pipeline/model';
+import type { Note } from '../model/model';
 import { mentionsRiskWord } from './keywords';
 
 export const SAMPLE_SEED = 2026;

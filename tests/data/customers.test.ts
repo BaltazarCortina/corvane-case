@@ -1,12 +1,12 @@
 // Invariants on how the real exports resolve to customers.
 
 import { describe, expect, it } from 'vitest';
+import { loadAssumptions } from '../../src/model/assumptions';
+import { loadExports } from '../../src/model/exports';
+import { parseExports } from '../../src/model/parse';
+import { loadReference } from '../../src/model/reference';
+import { resolveCustomers } from '../../src/model/resolve';
 import { paths } from '../../src/paths';
-import { loadAssumptions } from '../../src/pipeline/assumptions';
-import { loadExports } from '../../src/pipeline/exports';
-import { parseExports } from '../../src/pipeline/parse';
-import { loadReference } from '../../src/pipeline/reference';
-import { resolveCustomers } from '../../src/pipeline/resolve';
 
 const parsed = parseExports(loadExports(paths.raw), loadReference(paths.reference));
 const resolution = resolveCustomers(parsed, loadAssumptions(paths.assumptions));

@@ -4,10 +4,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { EXPORTS, type ExportName, loadExports } from '../../src/model/exports';
+import { parseExports } from '../../src/model/parse';
+import { loadReference } from '../../src/model/reference';
 import { paths } from '../../src/paths';
-import { EXPORTS, type ExportName, loadExports } from '../../src/pipeline/exports';
-import { parseExports } from '../../src/pipeline/parse';
-import { loadReference } from '../../src/pipeline/reference';
 
 const parsed = parseExports(loadExports(paths.raw), loadReference(paths.reference));
 

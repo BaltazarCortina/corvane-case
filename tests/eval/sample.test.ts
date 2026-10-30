@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { drawSample, stratumOf } from '../../src/eval/sample';
-import type { Note } from '../../src/pipeline/model';
+import type { Note } from '../../src/model/model';
 
 const note = (n: number, text: string): Note => ({
   id: `N-${String(n).padStart(3, '0')}`,

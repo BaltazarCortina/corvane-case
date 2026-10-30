@@ -3,15 +3,15 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/analysis/analyze';
-import { billedInvoices } from '../../src/analysis/billing';
-import { detectFindings } from '../../src/analysis/findings';
-import { buildWorklist } from '../../src/analysis/worklist';
-import type { NoteSignal } from '../../src/llm/notes';
-import { type CustomerStory, storyInputs } from '../../src/llm/stories';
-import { verifyStory } from '../../src/llm/verify';
+import { analyze } from '../../src/billing/analyze';
+import { billedInvoices } from '../../src/billing/billing';
+import { detectFindings } from '../../src/findings/findings';
+import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
-import { loadInputs } from '../../src/pipeline/build';
+import type { NoteSignal } from '../../src/risk/notes';
+import { buildWorklist } from '../../src/risk/worklist';
+import { type CustomerStory, storyInputs } from '../../src/stories/stories';
+import { verifyStory } from '../../src/stories/verify';
 
 const signalsFile = join(paths.llm, 'note-signals.json');
 const storiesFile = join(paths.llm, 'stories.json');

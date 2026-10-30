@@ -4,7 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
-import { NOTE_TYPES, type NoteType, REASONS, type Reason, RISK_LEVELS, type RiskLevel } from './scale';
+import { NOTE_TYPES, type NoteType, REASONS, type Reason, RISK_LEVELS, type RiskLevel } from '../risk/scale';
 
 export interface Label {
   noteId: string;

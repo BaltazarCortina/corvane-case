@@ -3,12 +3,12 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/analysis/analyze';
+import { analyze } from '../../src/billing/analyze';
 import { evaluate } from '../../src/eval/evaluate';
 import { loadLabels } from '../../src/eval/labels';
-import type { NoteSignal } from '../../src/llm/notes';
+import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
-import { loadInputs } from '../../src/pipeline/build';
+import type { NoteSignal } from '../../src/risk/notes';
 
 const signalsFile = join(paths.llm, 'note-signals.json');
 

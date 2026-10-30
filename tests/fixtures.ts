@@ -1,8 +1,8 @@
 // Builders for small inputs shared across tests.
 
-import type { Assignment, Assumptions, Parameters, Rule } from '../src/pipeline/assumptions';
-import { EXPORTS, type ExportName, parseCsv, type RawExports } from '../src/pipeline/exports';
-import type { Invoice, Model } from '../src/pipeline/model';
+import type { Assignment, Assumptions, Parameters, Rule } from '../src/model/assumptions';
+import { EXPORTS, type ExportName, parseCsv, type RawExports } from '../src/model/exports';
+import type { Invoice, Model } from '../src/model/model';
 
 /** The five exports from data lines; each export not given has only its header. */
 export function exportsWith(lines: Partial<Record<ExportName, string[]>>): RawExports {

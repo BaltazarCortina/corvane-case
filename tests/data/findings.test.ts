@@ -1,12 +1,12 @@
 // Invariants on the findings detected in the real exports.
 
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/analysis/analyze';
-import { contains } from '../../src/analysis/calendar';
-import { detectFindings, type RuleName, withRuleReversed } from '../../src/analysis/findings';
+import { analyze } from '../../src/billing/analyze';
+import { detectFindings, type RuleName, withRuleReversed } from '../../src/findings/findings';
+import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
-import { loadInputs } from '../../src/pipeline/build';
-import { sumMoney } from '../../src/pipeline/money';
+import { contains } from '../../src/shared/calendar';
+import { sumMoney } from '../../src/shared/money';
 
 const inputs = loadInputs(paths);
 const built = analyze(inputs);

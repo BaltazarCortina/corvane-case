@@ -2,8 +2,8 @@
 // stands for (the size of the group over the notes drawn from it). Weighted counts estimate what each
 // score would be over all the notes, not just over the sample.
 
+import { isAtRisk } from '../risk/scale';
 import type { Label } from './labels';
-import { isAtRisk } from './scale';
 
 export interface Weighted<T> {
   weight: number;
