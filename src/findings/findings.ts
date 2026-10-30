@@ -5,7 +5,7 @@
 import { type Built, build } from '../build';
 import type { RuleName } from '../model/assumptions';
 import type { Inputs } from '../model/build';
-import type { Invoice } from '../model/model';
+import { currentContractOf, type Invoice } from '../model/model';
 import { monthLabel, monthOf } from '../shared/calendar';
 import { count, percent, usd } from '../shared/format';
 import { sumMoney } from '../shared/money';
@@ -185,8 +185,12 @@ function contractDatesFinding(inputs: Inputs, built: Built, reversed: Built): Fi
     }),
   );
   const expired = (b: Built) => {
-    const current = new Set(b.model.customers.map((c) => c.contractId));
-    return b.model.contracts.filter((c) => current.has(c.id) && c.end !== null && c.end < b.billing.asOf).length;
+    const contractOf = currentContractOf(b.model);
+    const ended = b.model.customers.filter((customer) => {
+      const contract = contractOf(customer);
+      return contract !== null && contract.end !== null && contract.end < b.billing.asOf;
+    });
+    return ended.length;
   };
   const impact: Impact = {
     measure: `Current contracts already ended on ${billing.asOf}`,

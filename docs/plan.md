@@ -467,7 +467,7 @@ Outcome: 6 assumptions. Duplicate invoices: 45 ($801k), reversed the half would 
 −6.8%. Voided: 67 ($1.1M), −6.2%. Credit memos: 150 (−$518k), −6.5%. Duplicate customers: 9 companies,
 billed under both ids in at most 4 of 18 months; kept apart, 9 customers would look like they stopped
 billing instead of 8. Shortened names: 13, linking 15 notes. Impossible contract dates: 6, taken as
-exported 24 current contracts would look ended instead of 18. Worth checking: 9 contracts billed under
+exported 23 current contracts would look ended instead of 17. Worth checking: 9 contracts billed under
 half their value ($1.4M short), 6 customers billed over 1.5 times their contract, 15 expired contracts
 still billing, 4 notes linked to no customer. The jump at the system change (+16.9%) is within the usual
 variation (−26.7% to +25.0%). Informative: 56 name variants, 20 QuickBooks memos, 5 atypical invoices, 15

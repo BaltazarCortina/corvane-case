@@ -91,3 +91,30 @@ describe('observations', () => {
     expect(finding('crmStatus').worthChecking).toBe(false);
   });
 });
+
+describe('contracts that end before they start', () => {
+  // As of 2026-09-30. Acme's contract ended in June and is exported twice; Bolt's ends before it starts.
+  const contractInputs: Inputs = {
+    raw: exportsWith({
+      crm: [
+        'C-1,Acme Retail,Retail,Toledo,OH,L. Brennan,2020-01-01,Active',
+        'C-2,Bolt Logistics,Logistics,Toledo,OH,M. Okoro,2020-01-01,Active',
+      ],
+      netsuite: ['NS-1,C-1,2026-09-30,1000.00,USD,paid,Repair', 'NS-2,C-2,2026-09-30,1000.00,USD,paid,Repair'],
+      contracts: [
+        'CTR-1,C-1,2024-01-01,2026-06-30,1000.0,Monthly,Yes,Gold',
+        'CTR-1,C-1,2024-01-01,2026-06-30,1000.0,Monthly,Yes,Gold',
+        'CTR-2,C-2,2025-01-01,2024-12-31,1000.0,Monthly,Yes,Gold',
+      ],
+    }),
+    reference,
+    assumptions: assumptionsWith(),
+  };
+  const contractFindings = detectFindings(contractInputs, build(contractInputs));
+  const dates = contractFindings.find((f) => f.id === 'impossibleContractDates') as Finding;
+
+  it('counts a current contract exported twice once', () => {
+    expect(dates.impact?.asConfigured).toBe(1);
+    expect(dates.impact?.ifReversed).toBe(2);
+  });
+});
