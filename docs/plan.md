@@ -115,7 +115,7 @@ for lint and format.
 | 14 | Data screen | Where the numbers hold, open questions and assumptions | Done |
 | 15 | Summary screen | Billing and the customers at risk on one screen | Done |
 | 16 | Billing with no customer record | Names and ids no CRM customer covers, listed on both sides | Done |
-| 17 | README | How to run it, how it works, AI tools used, next steps | |
+| 17 | README | How to run it, how it works, AI tools used, next steps | Done |
 
 **Evaluation first.** The set the LLM is judged against (stage 7) is drawn and labeled by hand before the
 classifier runs (stage 8), so the labels are not anchored on what the LLM said.
@@ -705,4 +705,13 @@ customers, so the links are left as a next step. Tests cover both sides.
 Outcome: 4 QuickBooks names ($642k) bill from April 2024 to March 2025 and match no customer; 4 ids,
 not in the CRM, bill in NetSuite from April 2025 to September 2026. The break falls on the system
 change, which is what points to the same customers seen from each system.
+
+### 17. README
+
+The README says what the app shows, how to run it (including the API key, what the first LLM run asks
+and that every answer is cached), how it works in four principles, how the AI is checked (the quote
+check, the evaluation against the hand labels and the keyword screen, the cross-check with billing and
+the story verifier, with today's figures and what the verifier cannot see), how to check the code, the
+AI tools used to build it and inside it, the data issues fixed and set aside (as the brief asks), and
+the next work, as features to build.
 
