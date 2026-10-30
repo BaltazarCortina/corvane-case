@@ -110,7 +110,7 @@ for lint and format.
 | 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing || Done |
 | 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | Done |
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | Done |
-| 12 | API, app shell, billing screen | Server, React layout, the billing screen | |
+| 12 | API, app shell, billing screen | Server, React layout, the billing screen | Done |
 | 13 | Worklist and customer panel | The worklist and the customer detail | |
 | 14 | Data screen | Data health, reconciliation and AI checks | |
 | 15 | Summary screen | The three answers on one screen | |
@@ -582,3 +582,28 @@ story describes it as what the notes show. Where the notes record no problem, as
 stopped billing with its contract in force and whose only recent note is about a monitoring transfer, the
 story says so; and stories flag where the data may explain the billing. What the verifier cannot see is
 whether a source supports the conclusion drawn from it, which is the support check in the extras.
+
+### 12. API, app shell and billing screen
+
+`src/server/app.ts` is a Hono API that serves the files in `data/build/` as they are, the model in parts
+(customers, contracts, notes, reconciliation) because it is too large to send whole, and the parameters
+the pipeline used, for the definitions. It reads the files on every request and computes nothing;
+a missing file answers with the command that writes it. `web/` is the React app, with Vite and Tailwind:
+a header with the screens, each at its own address. The billing screen answers first and opens detail on
+demand, so it fits in about a screen and a half: the last complete half as the main figure and the last
+twelve months beside it, each with and without atypical invoices, with the open share and a flag when a
+comparison crosses the system change; one chart with two views, billing by month (typical and atypical
+stacked, the two halves compared shaded, the system change marked, a partial month faded, a table view)
+and the service lines in both halves; and the bridge as a list and its detail, the steps as bars growing
+left or right from zero and the customers behind the selected one, with the largest step selected from
+the start. Only the terms that are not obvious to someone in the trade have a definition, next to the
+term: net billings, atypical invoices, the fiscal half and the bridge steps, with the thresholds the
+numbers were built with. The app formats numbers with the same functions as the pipeline. `npm run dev`
+starts both. Tests cover the API: a file served as it is, a part of the model, the message for a missing
+file, an unknown resource and the parameters.
+
+Outcome: the screen shows H1 FY27 at $19.6M, −6.8% against $21.1M (−8.5% without atypical invoices), 12%
+still open; the last twelve months at $39.1M, +0.8% (−1.2%), flagged as crossing the system change; the 5
+atypical invoices visible on top of their months; and the bridge from $21.1M to $19.6M, opening on the 74
+customers that billed less (−$2.6M).
+

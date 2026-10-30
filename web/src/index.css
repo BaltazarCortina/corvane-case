@@ -1,0 +1,20 @@
+@import "tailwindcss";
+@source "./";
+
+/* The chart and ink roles, from one validated palette. Marks use the series and polarity colors; text
+   always uses the ink colors. */
+@theme {
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-page: #f9f9f7;
+  --color-surface: #fcfcfb;
+  --color-ink: #0b0b0b;
+  --color-ink-secondary: #52514e;
+  --color-ink-muted: #898781;
+  --color-hairline: #e1e0d9;
+  --color-baseline: #c3c2b7;
+  --color-series-1: #2a78d6;
+  --color-series-2: #eb6834;
+  --color-up: #2a78d6;
+  --color-down: #e34948;
+  --color-neutral: #52514e;
+}

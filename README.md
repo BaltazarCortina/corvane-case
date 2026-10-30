@@ -15,6 +15,7 @@ Requires Node 22 or later.
 npm install
 npm run pipeline # build the model, billing analysis and data findings from data/raw into data/build
 npm run llm      # read the notes, build the worklist and write the customer stories into data/build (needs OPENAI_API_KEY in .env)
+npm run dev      # the API on port 3001 and the app on http://localhost:5173
 ```
 
 ## Check it
