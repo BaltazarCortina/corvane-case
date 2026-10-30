@@ -114,7 +114,7 @@ for lint and format.
 | 13 | Worklist and customer panel | The worklist and the customer detail | Done |
 | 14 | Data screen | Where the numbers hold, open questions and assumptions | Done |
 | 15 | Summary screen | Billing and the customers at risk on one screen | Done |
-| 16 | Fine-tuning | Manual assignments and exceptions for single cases | |
+| 16 | Billing with no customer record | Names and ids no CRM customer covers, listed on both sides | Done |
 | 17 | README | How to run it, how it works, AI tools used, next steps | |
 
 **Evaluation first.** The set the LLM is judged against (stage 7) is drawn and labeled by hand before the
@@ -335,13 +335,12 @@ reads as medium (stage 9) do not change any customer's group.
   its share, how many contracts ended or end soon, who owns them), Win back and renewals, and up to ten
   of them. Each card leads to its screen. The data is not on it: it is read once, on its own screen.
 
-### 16. Fine-tuning
+### 16. Billing with no customer record
 
-- With the whole system visible, the single cases the rules cannot settle are decided by hand in
-  `config/assumptions.yml`: assignments with their evidence (QuickBooks names that match no customer,
-  paired with ids missing from the CRM by monthly amount, service mix and contract dates) and
-  exceptions where a rule should not apply.
-- Each one shows its impact on the Data screen like any other assumption.
+- A question for Corvane on the Data screen: names in the billing exports that match no customer, and
+  ids billed under that the CRM has no record of, each with what it billed and when, listed apart.
+- They are not linked by hand: Corvane has not said whether they are the same customers. Linking them
+  is a next step, once it does.
 
 ### 17. README
 
@@ -374,6 +373,12 @@ reads as medium (stage 9) do not change any customer's group.
 - Full period and comparison selectors.
 - Editing assumptions from the app, and live reload when the config changes.
 - A warning when a customer story is out of date with its inputs.
+- Link the customers split by the system change once Corvane confirms them: the QuickBooks names that
+  match no customer to the ids missing from the CRM, as `assignments` in `config/assumptions.yml`, then
+  rebuild everything. Each link would show on the Data screen as a decision, with evidence the pipeline
+  computes for both sides (billing per month, the main service line and its share, the gap between the
+  last invoice in one system and the first in the other), and the linked customer would take the
+  QuickBooks name and its history before the switch.
 - LLM-assisted matching of customer records across systems, always confirmed by a person.
 - Live integration with NetSuite and Salesforce instead of file exports.
 - Scale: a database for the clean model, incremental builds, batched LLM calls.
@@ -687,4 +692,17 @@ that stopped billing (−$1.3M)". Act now: 14 customers and $5.2M at stake, 64% 
 Partners ($3.3M, contract ending in 31 days); 8 contracts already ended and 5 end within 90 days; D.
 Hargrove owns 6 of them. Win back holds 12 customers ($3.7M), and 11 contracts are ending soon or already
 ended, besides the healthy auto-renewals.
+
+### 16. Billing with no customer record
+
+A new observation, a question for Corvane, lists the billing no CRM customer covers from both sides:
+the names in an export that match no customer and the ids billed under that the CRM has no record of,
+each with what it billed, how many invoices and from when to when. The Data screen shows the two sides
+apart, each ordered by amount, and an id opens its customer. The rule is generic: nothing in it names
+the cases of this data. The cases are not linked: Corvane has not said whether they are the same
+customers, so the links are left as a next step. Tests cover both sides.
+
+Outcome: 4 QuickBooks names ($642k) bill from April 2024 to March 2025 and match no customer; 4 ids,
+not in the CRM, bill in NetSuite from April 2025 to September 2026. The break falls on the system
+change, which is what points to the same customers seen from each system.
 

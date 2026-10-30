@@ -62,9 +62,9 @@ export function FindingRow({
               </span>
             )}
           </p>
-          {finding.id === 'unlinkedNotes' ? (
-            <UnlinkedNotes cases={finding.cases} signals={signals} />
-          ) : (
+          {finding.id === 'unlinkedNotes' && <UnlinkedNotes cases={finding.cases} signals={signals} />}
+          {finding.id === 'unmatchedBilling' && <UnmatchedBilling cases={finding.cases} names={names} />}
+          {finding.id !== 'unlinkedNotes' && finding.id !== 'unmatchedBilling' && (
             <CaseList cases={finding.cases} names={names} />
           )}
         </div>
@@ -165,6 +165,27 @@ function splitLabel(c: FindingCase, names: Map<string, string>): { customer: str
   const parts = c.label.split(' · ').filter((part) => part !== customer);
   const item = parts.join(' · ');
   return { customer, item: item === '' ? null : item };
+}
+
+/** Billing with no customer record, each side apart: the names no customer has, and the ids not in the CRM. */
+function UnmatchedBilling({ cases, names }: { cases: FindingCase[]; names: Map<string, string> }) {
+  const isId = (c: FindingCase) => c.customerId !== null;
+  const groups: [string, FindingCase[]][] = [
+    ['Names no customer has', cases.filter((c) => !isId(c))],
+    ['Ids not in the CRM', cases.filter(isId)],
+  ];
+  return (
+    <div className="space-y-4">
+      {groups
+        .filter(([, own]) => own.length > 0)
+        .map(([title, own]) => (
+          <div key={title}>
+            <p className="mb-1 font-medium text-ink-secondary text-xs uppercase tracking-wide">{title}</p>
+            <CaseList cases={own} names={names} />
+          </div>
+        ))}
+    </div>
+  );
 }
 
 /** Notes no customer was found for: prospects are expected; any other name is still to resolve. */

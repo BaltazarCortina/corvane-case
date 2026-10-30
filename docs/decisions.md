@@ -259,6 +259,15 @@ what it billed. Its risk level comes from billing alone, so a problem that has n
 cannot show; the list says how much of the business the notes do not see. The stories leave it out:
 they read the notes themselves, with their dates.
 
+### Billing with no customer record is listed from both sides, not linked
+
+**Criterion.** Names in an export that match no customer and ids billed under that the CRM has no
+record of are listed apart, each with what it billed and when, as a question for Corvane. Here the
+names stop billing when the system changes and the ids start right after, which suggests they are the
+same customers seen from each system. Linking them would give those customers a name and their history
+before the switch, but whether they are the same is for Corvane to say, so they stay apart until it
+does; `assignments` in `config/assumptions.yml` is where the links would go.
+
 ### The CRM status is reported, never used
 
 **Criterion.** Where the CRM says active and the customer has not billed in 90 days, or says inactive and

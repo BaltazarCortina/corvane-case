@@ -151,3 +151,30 @@ describe('contracts billed below their value', () => {
     expect(under.cases.map((c) => c.key)).toEqual(['CTR-1']);
   });
 });
+
+describe('billing with no customer record', () => {
+  // QuickBooks bills a name no customer has; NetSuite bills an id the CRM does not have.
+  const unmatchedInputs: Inputs = {
+    raw: exportsWith({
+      crm: ['C-1,Acme Retail,Retail,Toledo,OH,L. Brennan,2020-01-01,Active'],
+      quickbooks: [
+        'INV-1,Zeta Hotels,03/01/2025,$1000.00,Paid,Repair',
+        'INV-2,Acme Retail,03/01/2025,$500.00,Paid,Repair',
+      ],
+      netsuite: ['NS-1,C-9,2025-05-01,2000.00,USD,paid,Repair', 'NS-2,C-1,2026-09-30,100.00,USD,paid,Repair'],
+    }),
+    reference,
+    assumptions: assumptionsWith(),
+  };
+  const unmatchedFindings = detectFindings(unmatchedInputs, build(unmatchedInputs));
+  const unmatched = unmatchedFindings.find((f) => f.id === 'unmatchedBilling') as Finding;
+
+  it('lists both sides apart: names no customer has, and ids not in the CRM', () => {
+    const cases = unmatched.cases.map((c) => [c.key, c.customerId, c.amount]);
+    expect(cases).toEqual([
+      ['quickbooks:Zeta Hotels', null, 1000],
+      ['id:C-9', 'C-9', 2000],
+    ]);
+    expect(unmatched.amount).toBe(1000);
+  });
+});

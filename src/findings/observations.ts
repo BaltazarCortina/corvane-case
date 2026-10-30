@@ -13,7 +13,7 @@ import {
 import type { Built } from '../build';
 import type { Parameters } from '../model/assumptions';
 import type { Inputs } from '../model/build';
-import { type Contract, type CustomerRecord, currentContractOf } from '../model/model';
+import { type Contract, type CustomerRecord, currentContractOf, type Invoice } from '../model/model';
 import { daysIn, monthLabel, monthOf, overlap, type Period } from '../shared/calendar';
 import { groupBy } from '../shared/collections';
 import { count, percent, usd } from '../shared/format';
@@ -28,6 +28,7 @@ export function observationFindings(inputs: Inputs, built: Built): Finding[] {
     expiredContractsFinding(inputs, built, activity),
     systemChangeFinding(built),
     unlinkedNotesFinding(built),
+    unmatchedBillingFinding(built),
     nameVariantsFinding(built),
     unmappedValuesFinding(built),
     memoTranslationFinding(built),
@@ -223,6 +224,61 @@ function unlinkedNotesFinding(built: Built): Finding {
     cases,
   );
 }
+
+/**
+ * Billing that no CRM customer could be found for, from either side: names in an export that match no
+ * customer, and ids a billing system bills under that the CRM has no record of. They may be the same
+ * customers seen from each billing system; linking them is a decision for a person, so they are listed
+ * apart, each with what it billed and when.
+ */
+function unmatchedBillingFinding(built: Built): Finding {
+  const counted = built.model.invoices.filter((i) => i.excludedBy === null);
+  const describe = (invoices: Invoice[], where: string) => {
+    const dates = invoices.map((i) => i.date).sort();
+    const amounts = invoices.map((i) => i.amount);
+    const first = monthLabel(monthOf(dates[0]));
+    const last = monthLabel(monthOf(dates[dates.length - 1]));
+    return {
+      amount: sumMoney(amounts),
+      detail: `${count(invoices.length, 'invoice')} in ${where}, ${first} to ${last}.`,
+    };
+  };
+
+  const unassigned = counted.filter((i) => i.customerId === null);
+  const byName = groupBy(unassigned, (i) => `${i.source}:${i.customerAsExported}`);
+  const names = [...byName].map(([key, own]): FindingCase => {
+    const { amount, detail } = describe(own, SOURCE_NAMES[own[0].source]);
+    return {
+      key,
+      label: own[0].customerAsExported,
+      customerId: null,
+      amount,
+      detail: `No customer has this name. ${detail}`,
+    };
+  });
+
+  const outsideCrm = built.model.customers.filter((c) => !c.inCrm);
+  const invoicesOf = groupBy(counted, (i) => i.customerId);
+  const ids = outsideCrm.map((c): FindingCase => {
+    const own = invoicesOf.get(c.id) ?? [];
+    const sources = [...new Set(own.map((i) => SOURCE_NAMES[i.source]))].join(' and ');
+    const { amount, detail } = describe(own, sources);
+    return { key: `id:${c.id}`, label: c.id, customerId: c.id, amount, detail: `Not in the CRM. ${detail}` };
+  });
+
+  const nameAmounts = names.map((c) => c.amount ?? 0);
+  const unassignedTotal = sumMoney(nameAmounts);
+  return observation(
+    'unmatchedBilling',
+    true,
+    'Billing with no customer record',
+    `${count(names.length, 'name')} in the billing exports match no customer (${usd(unassignedTotal)}), and ${count(ids.length, 'id')} billed under ${ids.length === 1 ? 'is' : 'are'} not in the CRM and show without a name. They may be the same customers seen from each billing system; until they are linked, their history is split in two.`,
+    [...names, ...ids],
+    unassignedTotal,
+  );
+}
+
+const SOURCE_NAMES: Record<Invoice['source'], string> = { quickbooks: 'QuickBooks', netsuite: 'NetSuite' };
 
 function nameVariantsFinding(built: Built): Finding {
   const cases: FindingCase[] = [];
