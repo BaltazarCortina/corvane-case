@@ -391,3 +391,58 @@ recorded.
 **Criterion.** Confirmed in the notes when a high-risk note was written in the twelve months before the
 last invoice or since; otherwise, contract still in force when its end date has not passed, which may be
 work done and not invoiced, or a cancellation nobody recorded; otherwise, unknown.
+
+## Customer stories
+
+### Stories are written for the customers someone has to act on
+
+**Criterion.** Customers in Act now, Monitor and Win back get a story when they have notes to read.
+Renewals are healthy customers with a date coming up: they need a reminder, not a story. A customer with
+no notes has nothing for the LLM to add to its numbers, which the worklist already shows.
+
+### The LLM writes from facts computed by code, and cites them
+
+**Criterion.** The LLM gets the customer's notes, oldest first, and numbered facts computed by code: its
+profile and owner, billing status, risk level and reason, contract, amount at stake, both windows, the
+service lines, the months, and the data findings about it. It returns a headline, a trajectory (lost,
+worsening, stable or improving), the root cause, the current state and a suggested next step, each claim
+with the facts and notes it relies on. The LLM does what code cannot, reading the notes and connecting
+them with the numbers; every number comes from code. The facts write amounts and percentages the way the
+app does, so a number copied from them can be matched exactly.
+
+### The data findings go into the story
+
+**Criterion.** A contract billed far below its value, a contract that ended while billing goes on, a
+voided invoice or a credit memo can each look like a customer leaving. They are facts like any other, so
+the story can say that the numbers may reflect the data rather than the customer. Findings about how a
+name or a row was exported say nothing about the account and are left out.
+
+### The root cause tells a stated reason from what the notes show
+
+**Criterion.** The root cause is what puts the account at risk, as the notes show it. When a note gives
+the customer's own reason, such as a notice that names missed inspections, the story states it as their
+reason. When the notes show a sequence instead, such as late reports, then a competing quote, then the
+customer leaving, the story describes it as what the notes show, not as the reason the customer gave.
+Billing is not linked to an event only because they happen around the same time, and when the notes
+record no problem the story says so, without guessing why billing moved. The next step is called a
+suggestion, for people who know the account better, and the story carries no confidence score, since
+the model's own confidence is not calibrated.
+
+### Every claim is checked against what it cites
+
+**Mechanical.** The verifier checks that each claim cites something, that every citation was in the
+input, and that every amount, percentage and date in the text appears in what the claim cites; the
+headline, which cites nothing, is checked against the whole input. A problem names where the value is, if
+anywhere, so the fix is plain. Stories that fail are shown with their problems, not hidden.
+
+Known limit: the verifier checks that the numbers and dates come from the sources, not that the sources
+say what the claim says. A claim can cite a real note and still draw the wrong conclusion from it. A
+support check, one more LLM call per story that reviews each claim against its sources, is an extra in
+the plan.
+
+### Stories are cached by everything they are written from
+
+**Mechanical.** Like the note signals, each story is stored under a key of the prompt version, the model
+and the exact prompt, facts and notes included. A change in the data that reaches a customer's facts or
+notes writes its story again; anything else costs nothing.
+

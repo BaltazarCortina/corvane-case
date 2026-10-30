@@ -1,15 +1,18 @@
 // Runs the LLM over the model in data/build and writes its output to data/llm: a signal for every account
-// note, and the worklist that needs them. Answers are cached, so running again only asks about what
-// changed.
+// note, the worklist that needs them, and a story for the worklist customers with notes. Answers are
+// cached, so running again only asks about what changed.
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { BillingAnalysis } from '../src/analysis/analyze';
+import { billedInvoices } from '../src/analysis/billing';
+import type { Finding } from '../src/analysis/findings';
 import { buildWorklist, WORKLIST_GROUPS, type Worklist } from '../src/analysis/worklist';
 import { RISK_LEVELS } from '../src/eval/scale';
 import { mapLimit } from '../src/llm/cache';
 import { classifyNote, type NoteSignal } from '../src/llm/notes';
 import { llmFromEnv } from '../src/llm/provider';
+import { type CustomerStory, storyInputs, writeStory } from '../src/llm/stories';
 import { paths } from '../src/paths';
 import { loadAssumptions } from '../src/pipeline/assumptions';
 import type { Model } from '../src/pipeline/model';
@@ -27,6 +30,7 @@ const readJson = <T>(file: string): T => {
 
 const model = readJson<Model>(join(paths.build, 'model.json'));
 const billing = readJson<BillingAnalysis>(join(paths.build, 'billing.json'));
+const findings = readJson<Finding[]>(join(paths.build, 'findings.json'));
 const { parameters } = loadAssumptions(paths.assumptions);
 
 console.log(`Reading ${model.notes.length} account notes with ${llm.modelId}...`);
@@ -35,14 +39,20 @@ const signals = await mapLimit(model.notes, 8, (note) => classifyNote(note, llm,
 
 const worklist = buildWorklist(model, billing, signals, parameters);
 
-const outputs = { 'note-signals.json': signals, 'worklist.json': worklist };
+const invoices = billedInvoices(model, parameters);
+const inputs = storyInputs(model, billing, worklist, findings, invoices, parameters);
+console.log(`Writing ${inputs.length} customer stories...`);
+const storiesCache = join(paths.llmCache, 'stories');
+const stories = await mapLimit(inputs, 8, (input) => writeStory(input, llm, storiesCache, billing.asOf));
+
+const outputs = { 'note-signals.json': signals, 'worklist.json': worklist, 'stories.json': stories };
 mkdirSync(paths.llm, { recursive: true });
 for (const [file, content] of Object.entries(outputs)) {
   const json = JSON.stringify(content, null, 2);
   writeFileSync(join(paths.llm, file), `${json}\n`);
 }
 
-const summary = [...summaryLines(signals), ...worklistLines(worklist)];
+const summary = [...summaryLines(signals), ...worklistLines(worklist), ...storyLines(stories)];
 console.log(summary.join('\n'));
 console.log(`\nWrote ${Object.keys(outputs).join(', ')} to ${paths.llm}`);
 
@@ -64,4 +74,11 @@ function worklistLines(worklist: Worklist): string[] {
     return hidden > 0 ? `${own.length} ${group} (${hidden} healthy auto-renewals)` : `${own.length} ${group}`;
   });
   return [`Worklist   ${groups.join(', ')}`];
+}
+
+function storyLines(stories: CustomerStory[]): string[] {
+  const failed = stories.filter((s) => !s.check.ok);
+  const problems = failed.reduce((total, s) => total + s.check.problems.length, 0);
+  const verified = `${stories.length - failed.length} of ${stories.length} pass every check`;
+  return [`Stories    ${failed.length === 0 ? verified : `${verified}; ${problems} problems in ${failed.length}`}`];
 }

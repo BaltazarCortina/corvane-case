@@ -95,7 +95,7 @@ for lint and format.
 | 8 | Note classification | LLM reading each note, with quote verification || Done |
 | 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing || Done |
 | 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | Done |
-| 11 | Customer stories | LLM story per worklist customer, with a citation verifier | |
+| 11 | Customer stories | LLM story per worklist customer, with a citation verifier | Done |
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | |
 | 13 | Worklist and customer panel | The worklist and the customer detail | |
 | 14 | Data screen | Data health, reconciliation and AI checks | |
@@ -539,3 +539,26 @@ back 12 ($3.7M), 7 confirmed in the notes, 4 with the contract still in force an
 stopped over a year ago and are left out. Wexford Commercial Properties, one of the escalations, is in
 Act now with or without it, from a medium note and a 43.9% decline. 13 of the 15 customers billing on
 an ended contract have auto-renewal: a question for Corvane on how renewals are recorded.
+
+### 11. Customer stories
+
+`src/llm/facts.ts` computes the numbered facts of a customer: profile, billing status, risk, contract,
+amount at stake, both windows, service lines, months and its data findings, with amounts written the way
+the app writes them. `src/llm/stories.ts` picks the customers that get a story and sends the LLM their
+facts and notes, oldest first; the answer is a headline, a trajectory, and the root cause, current state
+and suggested next step, each citing facts and notes. `src/llm/verify.ts` checks every citation, amount,
+percentage and date against what the claim cites. `npm run llm` writes the stories, each with its facts
+and its check, to `data/llm/stories.json`. Tests cover the verifier (missing and unknown citations,
+numbers and dates not in the cited sources, the headline), the choice of customers, the order of the
+notes and the facts; on the real data, there is one story per customer that needs one, written from the
+current facts and notes, and each carries the result the verifier gives today.
+
+Outcome: 42 stories, written by `gpt-6-luna` in about 70 seconds: 20 worsening, 12 lost, 7 improving and
+3 stable. All 42 pass every check: 423 citations, 97 amounts and percentages and 109 dates, each found in
+what it cites. Read by hand, the stories keep to their sources. Four customers gave their reason in a
+written non-renewal notice, and the story states it as theirs. Where the notes show a sequence instead,
+such as renewal pricing above a competing quote and then the customer moving to that competitor, the
+story describes it as what the notes show. Where the notes record no problem, as for a customer that
+stopped billing with its contract in force and whose only recent note is about a monitoring transfer, the
+story says so; and stories flag where the data may explain the billing. What the verifier cannot see is
+whether a source supports the conclusion drawn from it, which is the support check in the extras.
