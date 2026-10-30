@@ -25,20 +25,39 @@ const assignment = z.strictObject({
 });
 
 /** Thresholds of the business rules, all our criteria. */
-const parameters = z.strictObject({
-  /** Service lines whose invoices are never atypical, however large. */
-  atypicalInvoiceExcludedLines: z.array(z.string()),
-  /** An invoice in any other line is atypical from this amount... */
-  atypicalInvoiceMinimum: z.number().positive(),
-  /** ...if it is also at least this many times what the customer bills in an average month. */
-  atypicalInvoiceMultiple: z.number().positive(),
-  /** A customer with no invoice for this many days has stopped billing. */
-  stoppedBillingDays: z.number().int().positive(),
-  /** A contract billed below this share of its value is worth checking... */
-  underBilledContractShare: z.number().positive(),
-  /** ...and so is one billed above this share. */
-  overBilledContractShare: z.number().positive(),
-});
+const parameters = z
+  .strictObject({
+    /** Service lines whose invoices are never atypical, however large. */
+    atypicalInvoiceExcludedLines: z.array(z.string()),
+    /** An invoice in any other line is atypical from this amount... */
+    atypicalInvoiceMinimum: z.number().positive(),
+    /** ...if it is also at least this many times what the customer bills in an average month. */
+    atypicalInvoiceMultiple: z.number().positive(),
+    /** A customer with no invoice for this many days has stopped billing. */
+    stoppedBillingDays: z.number().int().positive(),
+    /** A contract billed below this share of its value is worth checking... */
+    underBilledContractShare: z.number().positive(),
+    /** ...and so is one billed above this share. */
+    overBilledContractShare: z.number().positive(),
+    /** A decline in billing smaller than this amount is not a decline... */
+    minimumDeclineAmount: z.number().nonnegative(),
+    /** ...and from this share of the earlier billing it is moderate, strong or very strong. */
+    moderateDeclineShare: z.number().positive(),
+    strongDeclineShare: z.number().positive(),
+    veryStrongDeclineShare: z.number().positive(),
+    /** A customer at medium risk whose contract ends within this many days needs action now. */
+    actNowRenewalDays: z.number().int().nonnegative(),
+    /** A contract ending within this many days is an upcoming renewal. */
+    upcomingRenewalDays: z.number().int().nonnegative(),
+    /** A customer that stopped billing within this many months is worth winning back. */
+    winBackMonths: z.number().int().positive(),
+  })
+  .refine((p) => p.moderateDeclineShare < p.strongDeclineShare && p.strongDeclineShare < p.veryStrongDeclineShare, {
+    message: 'decline shares must grow from moderate to very strong',
+  })
+  .refine((p) => p.actNowRenewalDays <= p.upcomingRenewalDays, {
+    message: 'actNowRenewalDays must not exceed upcomingRenewalDays',
+  });
 
 const schema = z.strictObject({
   parameters,

@@ -251,9 +251,10 @@ prospect). It is a business definition: Corvane's account managers should valida
 
 Known limit: the scale does not say outright that a customer escalating to its own senior management, or
 demanding credits or a remediation plan, has taken the conflict beyond the account manager. The LLM reads
-those notes as medium where the hand labels say high. There are three such notes; two belong to customers
-with other high notes, and the third customer's billing decline weighs on its risk on its own. Refining
-the prompts over rounds of hand review, this definition among them, is a next step.
+those notes as medium where the hand labels say high. There are three such notes, and reading all three
+as high changes no customer's place in the worklist: two belong to customers with other high notes, and
+the third customer is already at high risk from a medium note and a strong billing decline. Refining the
+prompts over rounds of hand review, this definition among them, is a next step.
 
 ### The labeled sample is stratified by a keyword screen
 
@@ -320,3 +321,73 @@ less, something would be wrong with the reading, whatever the labels say.
 **Mechanical.** The model is not fully deterministic, so a fresh `npm run llm` can read a few notes
 differently. The report records the model, the prompt version and the date, so its numbers are not
 expected to repeat to the decimal.
+
+## Risk and worklist
+
+### A customer stopped billing after 90 days without an invoice
+
+**Criterion.** Set by `stoppedBillingDays` in `config/assumptions.yml`. Customers are billed almost every
+month, so 90 days without an invoice is a clear signal; atypical invoices count, since a customer billing
+a project is still billing. This is the customer's status today, apart from the bridge, which compares
+two closed periods.
+
+### Risk and renewal are two separate dimensions
+
+**Criterion.** Risk says how likely Corvane is to lose the customer; the renewal says when to act: days to
+the end of the current contract, whether it ended with no newer contract on file, and whether it renews
+by itself. A contract ending soon does not make a healthy customer risky, and a risky customer is not
+safe because its contract runs for years. The two only meet in the worklist groups.
+
+### Risk comes from a matrix of the notes and billing, not from points
+
+**Criterion.** Set by `minimumDeclineAmount`, `moderateDeclineShare`, `strongDeclineShare` and
+`veryStrongDeclineShare` in `config/assumptions.yml`. One signal is the worst note of the last twelve
+months, as the LLM read it (the latest one if several share the level). The other is the decline in
+billing, last complete half against the same half a year earlier, without atypical invoices: moderate
+from 10%, strong from 25%, very strong from 50%, and only when the drop is at least $10k, so a small
+customer's swing does not count.
+
+| Worst note ↓ / Decline → | None | Moderate | Strong | Very strong |
+|---|---|---|---|---|
+| None, or no notes | none | low | medium | high |
+| Low | low | low | medium | high |
+| Medium | medium | medium | high | high |
+| High | high | high | high | high |
+
+A high note is high risk on its own, and so is a very strong decline, in case the account manager did not
+write down what matters. A strong decline with no note behind it is a signal, not a certainty, so it
+stops at medium. A matrix instead of a score that adds points explains every level in one line, such as
+"Medium note on 2026-05-16 and billing down 43.9% ($27k)".
+
+### The amount at stake is typical billing over a year
+
+**Criterion.** What the customer billed in the last twelve months without atypical invoices, so a one-off
+project does not inflate it; for a customer that stopped, the twelve months up to its last invoice.
+
+### Each customer falls in one worklist group, by the first rule that matches
+
+**Criterion.** Set by `winBackMonths`, `actNowRenewalDays` and `upcomingRenewalDays` in
+`config/assumptions.yml`. In this order:
+
+1. Stopped billing in the last 12 months → **Win back**.
+2. High risk, or medium risk with the contract ending within 90 days or already ended → **Act now**.
+3. Medium risk → **Monitor**.
+4. Low or no risk with the contract ending within 180 days or already ended → **Renewals**.
+5. Low risk → **Monitor**.
+
+The rest, and customers that stopped longer ago, are not in the worklist. Win back is checked first on
+purpose: a customer that already left would otherwise fill Act now and hide those that can still be kept.
+The groups are shown in another order, Act now, Renewals, Monitor and Win back; within each, by amount at
+stake, and renewals by end date, the ended ones first. A renewal with no risk that renews by itself needs
+no action and is hidden by default.
+
+Known limit: a contract past its end date counts as ended even when it renews automatically. 13 of the 15
+customers billing on an ended contract have auto-renewal, so most of them probably renewed without a new
+contract on file. They show as renewals, hidden when healthy, until Corvane says how renewals are
+recorded.
+
+### Why a customer stopped is said only as far as the data tells
+
+**Criterion.** Confirmed in the notes when a high-risk note was written in the twelve months before the
+last invoice or since; otherwise, contract still in force when its end date has not passed, which may be
+work done and not invoiced, or a cancellation nobody recorded; otherwise, unknown.

@@ -12,8 +12,3 @@ export type NoteType = (typeof NOTE_TYPES)[number];
 export function isAtRisk(risk: RiskLevel): boolean {
   return risk === 'medium' || risk === 'high';
 }
-
-/** The higher of two risk levels. */
-export function higherRisk(a: RiskLevel, b: RiskLevel): RiskLevel {
-  return RISK_LEVELS.indexOf(a) >= RISK_LEVELS.indexOf(b) ? a : b;
-}

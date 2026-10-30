@@ -110,7 +110,8 @@ export function twelveMonthWindow(asOf: string): Window {
   return { current, previous };
 }
 
-function twelveMonthsTo(end: string): Period {
+/** The twelve months ending on a date. */
+export function twelveMonthsTo(end: string): Period {
   const yearBefore = addMonths(end, -12);
   const start = addDays(yearBefore, 1);
   const endMonth = monthLabel(monthOf(end));
@@ -127,6 +128,11 @@ export function overlap(a: Period, b: Period): Period | null {
 }
 
 export function daysIn(period: Period): number {
-  const milliseconds = toDate(period.end).getTime() - toDate(period.start).getTime();
-  return milliseconds / 86_400_000 + 1;
+  return daysBetween(period.start, period.end) + 1;
+}
+
+/** Days from one date to another, negative when the second is earlier. */
+export function daysBetween(from: string, to: string): number {
+  const milliseconds = toDate(to).getTime() - toDate(from).getTime();
+  return milliseconds / 86_400_000;
 }

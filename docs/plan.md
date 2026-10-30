@@ -94,7 +94,7 @@ for lint and format.
 | 7 | Evaluation set | Keyword screen, stratified sample of notes, hand labels || Done |
 | 8 | Note classification | LLM reading each note, with quote verification || Done |
 | 9 | Evaluation | Scores against the hand labels, keyword baseline, cross-check with billing || Done |
-| 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | |
+| 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | Done |
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | |
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | |
 | 13 | Worklist and customer panel | The worklist and the customer detail | |
@@ -262,7 +262,8 @@ sample has a valid label.
 - Worklist groups, assigned by the first rule that matches: stopped billing in the last 12 months →
   **Win back**; high risk, or medium risk ending within 90 days or expired → **Act now**; medium risk →
   **Monitor**; low or no risk ending within 180 days or expired → **Renewals**; low risk → **Monitor**.
-  Shown in the order Act now, Renewals, Monitor, Win back. Healthy auto-renewals hidden by default.
+  Shown in the order Act now, Renewals, Monitor, Win back; within each group by amount at stake, and
+  renewals by end date. Healthy auto-renewals hidden by default.
 - For those who stopped billing: confirmed in notes / contract still active / reason unknown.
 - Computed in the LLM step, right after the note signals it needs, and saved with them, so the
   customer stories and the server read the same worklist.
@@ -516,3 +517,25 @@ Billing check: the 9 customers whose notes say high risk bill a median 91% less,
 customers with no notes in the period bill a median 6% less: the notes do not see everything, which is
 why billing has its own weight in the risk level.
 
+### 10. Risk and worklist
+
+Seven more parameters in `config/assumptions.yml`: the minimum drop and the three shares that grade a
+billing decline, the two renewal horizons and the months a lost customer is worth winning back, checked
+to be in order. `src/analysis/risk.ts` grades the decline and combines it with the worst note in a matrix,
+with a one-line reason per level; `src/analysis/worklist.ts` gives every customer its billing status,
+risk, renewal, amount at stake and, for those that stopped, why, and places it in a group by the first
+rule that matches. `npm run llm` builds it right after the note signals and writes
+`data/llm/worklist.json`, in the order it is shown. Tests cover the matrix, the decline thresholds and
+minimum, each group rule and their order, the amount at stake before and after stopping, the reasons for
+stopping and the display order; on the real data, every customer is assessed once, every customer at
+high risk that still bills is in Act now, and reading the three escalation notes as high, as the hand
+labels do, leaves every customer in the same group.
+
+Outcome: of 170 customers, 146 bill, 17 stopped and 7 never billed. Among those billing, 5 are at high
+risk, 19 medium, 27 low and 95 none; 3 of the high ones have no high note (two very strong declines, and
+a medium note with a strong decline). The worklist: Act now 14 ($5.2M at stake, 5 high and 9 medium);
+Renewals 30, 19 of them healthy auto-renewals hidden by default; Monitor 28 (10 medium, 18 low); Win
+back 12 ($3.7M), 7 confirmed in the notes, 4 with the contract still in force and 1 unknown. 5 more
+stopped over a year ago and are left out. Wexford Commercial Properties, one of the escalations, is in
+Act now with or without it, from a medium note and a 43.9% decline. 13 of the 15 customers billing on
+an ended contract have auto-renewal: a question for Corvane on how renewals are recorded.

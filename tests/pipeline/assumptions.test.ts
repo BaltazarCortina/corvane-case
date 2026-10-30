@@ -9,6 +9,13 @@ parameters:
   stoppedBillingDays: 90
   underBilledContractShare: 0.5
   overBilledContractShare: 1.5
+  minimumDeclineAmount: 10000
+  moderateDeclineShare: 0.1
+  strongDeclineShare: 0.25
+  veryStrongDeclineShare: 0.5
+  actNowRenewalDays: 90
+  upcomingRenewalDays: 180
+  winBackMonths: 12
 duplicateCustomers: { applies: true, confirmed: false, basis: b }
 shortenedNoteNames: { applies: true, confirmed: false, basis: b }
 duplicateInvoices: { applies: true, confirmed: false, basis: b }
@@ -33,6 +40,15 @@ describe('parseAssumptions', () => {
   it('fails on an incomplete assignment with its path', () => {
     const text = `${valid}assignments: [{ source: quickbooks, value: Acme, customer: C-1 }]`;
     expect(() => parseAssumptions(text)).toThrow(/assignments\.0\.confirmed/);
+  });
+
+  it('fails on thresholds out of order', () => {
+    expect(() => parseAssumptions(valid.replace('strongDeclineShare: 0.25', 'strongDeclineShare: 0.6'))).toThrow(
+      /decline shares must grow/,
+    );
+    expect(() => parseAssumptions(valid.replace('actNowRenewalDays: 90', 'actNowRenewalDays: 200'))).toThrow(
+      /actNowRenewalDays/,
+    );
   });
 
   it('fails on a misspelled key instead of ignoring it', () => {

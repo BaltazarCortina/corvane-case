@@ -14,7 +14,7 @@ Requires Node 22 or later.
 ```bash
 npm install
 npm run pipeline # build the model, billing analysis and data findings from data/raw into data/build
-npm run llm      # read the account notes with the LLM into data/llm (needs OPENAI_API_KEY in .env)
+npm run llm      # read the account notes with the LLM and build the worklist into data/llm (needs OPENAI_API_KEY in .env)
 ```
 
 ## Check it

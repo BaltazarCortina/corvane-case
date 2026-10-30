@@ -20,6 +20,19 @@ parameters:
   # contract above. Customers usually bill close to their contract value.
   underBilledContractShare: 0.5
   overBilledContractShare: 1.5
+  # A customer's billing declines when its last complete half, without atypical invoices, is below the
+  # same half a year earlier by at least this amount and one of these shares: moderate, strong or very
+  # strong. The amount keeps a small customer's swing from reading as a decline.
+  minimumDeclineAmount: 10000
+  moderateDeclineShare: 0.1
+  strongDeclineShare: 0.25
+  veryStrongDeclineShare: 0.5
+  # The worklist acts now on a customer at medium risk whose contract ends within this many days, and
+  # lists as a renewal a contract ending within the second number. Both count contracts already ended.
+  actNowRenewalDays: 90
+  upcomingRenewalDays: 180
+  # A customer that stopped billing within this many months is still worth winning back.
+  winBackMonths: 12
 
 duplicateCustomers:
   # CRM records with the same normalized name in the same city and state are one customer. Records
