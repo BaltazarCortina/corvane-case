@@ -36,7 +36,14 @@ export function WorklistTable({
                 </InfoTip>
               )}
             </th>
-            <th className="px-4 py-2.5 text-right font-normal">At stake</th>
+            <th className="px-4 py-2.5 text-right font-normal">
+              At stake
+              <InfoTip term="at stake">
+                What the customer billed without atypical invoices over the last twelve months. For a customer that
+                stopped billing, over the twelve months up to its last invoice: what was lost, not what it billed
+                lately.
+              </InfoTip>
+            </th>
             <th className="px-4 py-2.5 font-normal">{winBack ? 'Last invoice' : 'Contract'}</th>
           </tr>
         </thead>
@@ -64,7 +71,12 @@ export function WorklistTable({
                 )}
               </td>
               <td className="px-4 py-3">{winBack ? <StoppedCell customer={c} /> : <RiskCell customer={c} />}</td>
-              <td className="px-4 py-3 text-right font-medium tabular-nums">{usd(c.amountAtStake)}</td>
+              <td className="px-4 py-3 text-right font-medium tabular-nums">
+                {usd(c.amountAtStake)}
+                {c.status === 'stopped' && (
+                  <span className="block font-normal text-ink-muted text-xs">12 months to last invoice</span>
+                )}
+              </td>
               <td className="whitespace-nowrap px-4 py-3">
                 {winBack ? <span className="text-ink-secondary">{c.lastInvoice}</span> : <ContractCell customer={c} />}
               </td>

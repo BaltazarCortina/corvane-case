@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  amountAtStake,
   type BilledInvoice,
   billedInvoices,
   byServiceLine,
@@ -131,5 +132,32 @@ describe('openAmount', () => {
   it('is unknown for a period with no invoices from the new system', () => {
     const invoices = [billed({ source: 'quickbooks', date: '2026-05-01', status: 'open' })];
     expect(openAmount(invoices, window.current)).toBeNull();
+  });
+});
+
+describe('amountAtStake', () => {
+  const asOf = '2026-09-30';
+
+  it('takes the typical billing of the last twelve months from a customer still billing', () => {
+    const own = [
+      billed({ date: '2025-09-15', amount: 100 }),
+      billed({ date: '2026-01-10', amount: 200 }),
+      billed({ date: '2026-09-01', amount: 300 }),
+      billed({ date: '2026-06-01', amount: 5_000, atypical: true }),
+    ];
+    const stake = amountAtStake(own, asOf, parameters);
+    expect(stake.amount).toBe(500);
+    expect(stake.period).toMatchObject({ start: '2025-10-01', end: asOf });
+  });
+
+  it('takes what a customer that stopped billed in the twelve months up to its last invoice', () => {
+    const own = [
+      billed({ date: '2024-12-01', amount: 100 }),
+      billed({ date: '2025-06-01', amount: 200 }),
+      billed({ date: '2025-10-07', amount: 300 }),
+    ];
+    const stake = amountAtStake(own, asOf, parameters);
+    expect(stake.amount).toBe(600);
+    expect(stake.period).toMatchObject({ start: '2024-10-08', end: '2025-10-07' });
   });
 });

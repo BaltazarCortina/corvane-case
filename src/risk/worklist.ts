@@ -3,7 +3,14 @@
 // renewal says when to act; they are kept apart and only meet in the group rules.
 
 import type { BillingAnalysis } from '../billing/analyze';
-import { type BillingStatus, billedInvoices, billingStatus, lastInvoiceOf, totalIn } from '../billing/billing';
+import {
+  amountAtStake,
+  type BillingStatus,
+  billedInvoices,
+  billingStatus,
+  lastInvoiceOf,
+  totalIn,
+} from '../billing/billing';
 import type { Parameters } from '../model/assumptions';
 import { type Contract, currentContractOf, type Model, type Note } from '../model/model';
 import { addMonths, contains, daysBetween, type Period, twelveMonthsTo, type Window } from '../shared/calendar';
@@ -52,6 +59,8 @@ export interface CustomerAssessment {
    * twelve months up to its last invoice.
    */
   amountAtStake: number;
+  /** The twelve months the amount at stake covers: up to the last invoice for a customer that stopped. */
+  stakePeriod: Period;
   group: WorklistGroup | null;
   /** A renewal with no risk that renews by itself: nothing to do, so hidden by default. */
   healthyAutoRenewal: boolean;
@@ -104,8 +113,7 @@ export function buildWorklist(
     const worstNote = worstNotes.get(customer.id) ?? null;
     const risk = riskOf(worstNote, decline);
 
-    const stakePeriod = status === 'stopped' && lastInvoice ? twelveMonthsTo(lastInvoice) : lastTwelveMonths;
-    const amountAtStake = totalIn(typical, stakePeriod);
+    const stake = amountAtStake(own, asOf, parameters);
     const customerNotes = notesOf.get(customer.id) ?? [];
     const stopped =
       status === 'stopped' && lastInvoice
@@ -122,7 +130,8 @@ export function buildWorklist(
       stopped,
       risk,
       renewal,
-      amountAtStake,
+      amountAtStake: stake.amount,
+      stakePeriod: stake.period,
       group,
       healthyAutoRenewal,
     };

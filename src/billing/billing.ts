@@ -3,7 +3,16 @@
 
 import type { Parameters } from '../model/assumptions';
 import type { Invoice, Model } from '../model/model';
-import { addDays, contains, monthEnd, monthOf, monthsBetween, type Period, type Window } from '../shared/calendar';
+import {
+  addDays,
+  contains,
+  monthEnd,
+  monthOf,
+  monthsBetween,
+  type Period,
+  twelveMonthsTo,
+  type Window,
+} from '../shared/calendar';
 import { groupBy } from '../shared/collections';
 import { sumMoney } from '../shared/money';
 
@@ -60,6 +69,29 @@ export function billingStatus(lastInvoice: string | null, asOf: string, paramete
   if (lastInvoice === null) return 'neverBilled';
   const recently = addDays(asOf, -parameters.stoppedBillingDays);
   return lastInvoice >= recently ? 'billing' : 'stopped';
+}
+
+/** What a customer is worth: its typical billing over twelve months, and which twelve months. */
+export interface Stake {
+  amount: number;
+  /**
+   * The last twelve months while the customer bills; once it stopped, the twelve months up to its last
+   * invoice, which is what was lost. Not the last twelve months of the data then.
+   */
+  period: Period;
+}
+
+/**
+ * A customer's amount at stake: what it billed without atypical invoices over the last twelve months or,
+ * once it stopped billing, over the twelve months up to its last invoice. `own` is its invoices that count.
+ */
+export function amountAtStake(own: BilledInvoice[], asOf: string, parameters: Parameters): Stake {
+  const lastInvoice = lastInvoiceOf(own);
+  const status = billingStatus(lastInvoice, asOf, parameters);
+  const end = status === 'stopped' && lastInvoice ? lastInvoice : asOf;
+  const period = twelveMonthsTo(end);
+  const typical = own.filter((i) => !i.atypical);
+  return { amount: totalIn(typical, period), period };
 }
 
 /** The invoices that count, each marked atypical or not. */

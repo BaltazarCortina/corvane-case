@@ -1,8 +1,17 @@
 // Observations: what the data shows that does not move the numbers. Those with money involved or worth
 // checking with Corvane come first; the rest are informative.
 
-import { type BilledInvoice, billedInvoices, billingStatus, lastInvoiceOf, totalIn } from '../billing/billing';
+import {
+  amountAtStake,
+  type BilledInvoice,
+  billedInvoices,
+  billingStatus,
+  lastInvoiceOf,
+  type Stake,
+  totalIn,
+} from '../billing/billing';
 import type { Built } from '../build';
+import type { Parameters } from '../model/assumptions';
 import type { Inputs } from '../model/build';
 import { type Contract, type CustomerRecord, currentContractOf } from '../model/model';
 import { daysIn, monthLabel, monthOf, overlap, type Period } from '../shared/calendar';
@@ -13,7 +22,7 @@ import { customerNames, type Finding, type FindingCase, invoiceCase } from './ca
 
 export function observationFindings(inputs: Inputs, built: Built): Finding[] {
   const invoices = billedInvoices(built.model, inputs.assumptions.parameters);
-  const activity = customerActivity(invoices, built);
+  const activity = customerActivity(invoices, built, inputs.assumptions.parameters);
   return [
     ...contractBillingFindings(inputs, built, activity),
     expiredContractsFinding(inputs, built, activity),
@@ -40,29 +49,40 @@ function observation(
   return { id, kind: 'observation', worthChecking, title, summary, rule: null, impact: null, amount, cases };
 }
 
-/** For each customer: its last invoice and what it billed in the last twelve months. */
+/** For each customer: its last invoice and its amount at stake, the money its cases involve. */
 interface Activity {
   lastInvoice: Map<string, string>;
-  lastTwelveMonths: Map<string, number>;
+  stake: Map<string, Stake>;
   billedIn: (customerId: string, period: Period) => number;
 }
 
-function customerActivity(invoices: BilledInvoice[], built: Built): Activity {
+function customerActivity(invoices: BilledInvoice[], built: Built, parameters: Parameters): Activity {
   const byCustomer = groupBy(invoices, (i) => i.customerId);
-  const twelveMonths = built.billing.twelveMonths.window.current;
   const billedIn = (customerId: string, period: Period) => {
     const own = byCustomer.get(customerId) ?? [];
     return totalIn(own, period);
   };
   const lastInvoice = new Map<string, string>();
-  const lastTwelveMonths = new Map<string, number>();
+  const stake = new Map<string, Stake>();
   for (const [customerId, own] of byCustomer) {
     if (customerId === null) continue;
     const last = lastInvoiceOf(own);
     if (last !== null) lastInvoice.set(customerId, last);
-    lastTwelveMonths.set(customerId, billedIn(customerId, twelveMonths));
+    stake.set(customerId, amountAtStake(own, built.billing.asOf, parameters));
   }
-  return { lastInvoice, lastTwelveMonths, billedIn };
+  return { lastInvoice, stake, billedIn };
+}
+
+/**
+ * The money a customer's case involves, its amount at stake; for a customer that stopped billing, the
+ * detail says it covers the twelve months up to its last invoice, not the last twelve months.
+ */
+function stakeOf(customerId: string, activity: Activity, asOf: string): { amount: number; note: string | null } {
+  const stake = activity.stake.get(customerId);
+  if (!stake) return { amount: 0, note: null };
+  const toLastInvoice = stake.period.end < asOf;
+  const note = toLastInvoice ? `At stake: the 12 months to its last invoice, ${stake.period.end}.` : null;
+  return { amount: stake.amount, note };
 }
 
 function currentContracts(built: Built): { customer: CustomerRecord; contract: Contract }[] {
@@ -133,7 +153,7 @@ function expiredContractsFinding(inputs: Inputs, built: Built, activity: Activit
       key: contract.id,
       label: `${customer.name} · ${contract.id}`,
       customerId: customer.id,
-      amount: activity.lastTwelveMonths.get(customer.id) ?? 0,
+      amount: stakeOf(customer.id, activity, asOf).amount,
       detail: `Contract ended ${contract.end}; last invoice ${lastInvoice}.`,
     });
   }
@@ -308,7 +328,7 @@ function notesCoverageFinding(inputs: Inputs, built: Built, activity: Activity):
       key: customer.id,
       label: customer.name,
       customerId: customer.id,
-      amount: activity.lastTwelveMonths.get(customer.id) ?? 0,
+      amount: stakeOf(customer.id, activity, built.billing.asOf).amount,
       detail: lastNote ? `Last note on ${lastNote}.` : 'No notes at all.',
     });
   }
@@ -319,7 +339,7 @@ function notesCoverageFinding(inputs: Inputs, built: Built, activity: Activity):
     'notesCoverage',
     false,
     "Customers the notes don't cover",
-    `${count(sorted.length, 'customer')} of the ${billing.length} still billing have no account note in the ${twelveMonths.label}; they billed ${usd(total)} in that time. Their risk comes from billing alone, so a problem that has not reached billing yet does not show.`,
+    `${count(sorted.length, 'customer')} of the ${billing.length} still billing have no account note in the ${twelveMonths.label}, with ${usd(total)} at stake, their billing in that time without atypical invoices. Their risk comes from billing alone, so a problem that has not reached billing yet does not show.`,
     sorted,
     total,
   );
@@ -327,15 +347,10 @@ function notesCoverageFinding(inputs: Inputs, built: Built, activity: Activity):
 
 function noAccountManagerFinding(built: Built, activity: Activity): Finding {
   const without = built.model.customers.filter((c) => c.inCrm && c.accountManagers.length === 0);
-  const cases = without.map(
-    (c): FindingCase => ({
-      key: c.id,
-      label: c.name,
-      customerId: c.id,
-      amount: activity.lastTwelveMonths.get(c.id) ?? 0,
-      detail: null,
-    }),
-  );
+  const cases = without.map((c): FindingCase => {
+    const { amount, note } = stakeOf(c.id, activity, built.billing.asOf);
+    return { key: c.id, label: c.name, customerId: c.id, amount, detail: note };
+  });
   return observation(
     'noAccountManager',
     false,

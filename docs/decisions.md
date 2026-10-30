@@ -389,7 +389,11 @@ stops at medium. A matrix instead of a score that adds points explains every lev
 ### The amount at stake is typical billing over a year
 
 **Criterion.** What the customer billed in the last twelve months without atypical invoices, so a one-off
-project does not inflate it; for a customer that stopped, the twelve months up to its last invoice.
+project does not inflate it; for a customer that stopped, the twelve months up to its last invoice, which
+is what was lost: the last twelve months would show only what it billed before leaving. Wherever that
+applies, the app says so, so it is not read as the last twelve months. It is defined once, in
+`src/billing/`, and it is the money the worklist, the customer panel and the data findings about a
+customer all show.
 
 ### Each customer falls in one worklist group, by the first rule that matches
 

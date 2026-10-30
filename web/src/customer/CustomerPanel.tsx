@@ -7,6 +7,7 @@ import { describeCase, type Finding, findingsAbout } from '../../../src/findings
 import type { CustomerRecord, Note } from '../../../src/model/model';
 import type { NoteSignal } from '../../../src/risk/notes';
 import type { CustomerAssessment, Worklist } from '../../../src/risk/worklist';
+import { dayLabel } from '../../../src/shared/calendar';
 import { usd } from '../../../src/shared/format';
 import type { CustomerStory } from '../../../src/stories/stories';
 import { useResource } from '../api';
@@ -122,7 +123,14 @@ function Panel({
       </header>
 
       <div className="grid grid-cols-3 gap-3">
-        <Stat label="At stake">{usd(assessment.amountAtStake)}</Stat>
+        <Stat label="At stake">
+          {usd(assessment.amountAtStake)}
+          <span className="block font-normal text-ink-muted text-xs">
+            {assessment.status === 'stopped'
+              ? `12 months to its last invoice, ${dayLabel(assessment.stakePeriod.end)}`
+              : 'Last 12 months, without atypical invoices'}
+          </span>
+        </Stat>
         <Stat label={`${declineWindow.current.label} vs ${declineWindow.previous.label}`}>
           <Change pct={risk.decline.changePct} />
         </Stat>

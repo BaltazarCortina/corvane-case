@@ -83,8 +83,10 @@ describe('observations', () => {
     expect(keys('unlinkedNotes')).toEqual(['N-2']);
   });
 
-  it('lists customers without an account manager', () => {
-    expect(keys('noAccountManager')).toEqual(['C-2']);
+  it('lists customers without an account manager, with what one that stopped billed before leaving', () => {
+    const [bolt] = finding('noAccountManager').cases;
+    expect(bolt).toMatchObject({ key: 'C-2', amount: 2000 });
+    expect(bolt.detail).toBe('At stake: the 12 months to its last invoice, 2025-04-15.');
   });
 
   it('lists customers whose CRM status contradicts their billing', () => {

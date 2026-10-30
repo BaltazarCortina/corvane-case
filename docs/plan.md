@@ -654,10 +654,14 @@ findings, the informative observations, close the screen. The reconciliation of 
 tests: it proves the files were read without losing a row, not that they are right, and on screen it
 would read as more than that. The evaluation of the AI is not in the app.
 
+The money a customer's case involves is its amount at stake, defined once in `src/billing/` and the same
+the worklist shows; for a customer that stopped billing it covers the twelve months up to its last
+invoice, and the app says so wherever it shows it.
+
 Outcome: $1.9M set aside from billing (45 exact copies, $801k, and 67 voided invoices, $1.1M); 259 of 263
 notes (98%) reach their customer, the other 4 being 3 prospects and one name that fits two customers; 8
 contracts billed $1.3M below their value, one fewer than before, since the contract whose end is unknown
-is left out; 66 of the 146 customers still billing ($12.4M in twelve months) have no account note in that
-time. Five items are open questions, and five are assumptions decided on the evidence: duplicate invoices
-(the half at −3.0% instead of −6.8% the other way), voided invoices (−6.2%), credit memos (−6.5%),
-duplicate customers and shortened names.
+is left out; 66 of the 146 customers still billing ($11.9M at stake) have no account note in that time.
+Five items are open questions, and five are assumptions decided on the evidence: duplicate invoices (the
+half at −3.0% instead of −6.8% the other way), voided invoices (−6.2%), credit memos (−6.5%), duplicate
+customers and shortened names.
