@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { build } from '../../src/build';
 import type { Inputs } from '../../src/model/build';
+import type { Note } from '../../src/model/model';
 import type { Reference } from '../../src/model/reference';
 import type { NoteSignal } from '../../src/risk/notes';
-import { buildWorklist, type GroupInputs, groupOf, type Renewal } from '../../src/risk/worklist';
+import { buildWorklist, type GroupInputs, groupOf, type Renewal, reasonCounts } from '../../src/risk/worklist';
 import { assumptionsWith, exportsWith } from '../fixtures';
 
 const { parameters } = assumptionsWith();
@@ -187,5 +188,48 @@ describe('buildWorklist', () => {
     expect(customer('C-7')?.lastInvoice).toBe('2026-09-01');
     expect(customer('C-1')?.status).toBe('stopped');
     expect(customer('C-5')?.status).toBe('neverBilled');
+  });
+});
+
+describe('reasonCounts', () => {
+  const note = (id: string, customerId: string, date: string): Note => ({
+    id,
+    line: 2,
+    customerId,
+    nameAsWritten: '',
+    linkedBy: 'exact',
+    candidates: [],
+    date,
+    author: '',
+    text: '',
+  });
+  const read = (noteId: string, risk: NoteSignal['risk'], reasons: NoteSignal['reasons']) => ({
+    ...signal(noteId, risk),
+    reasons,
+  });
+  const period = { label: '', start: '2025-10-01', end: '2026-09-30' };
+
+  it('counts each customer once per reason, from its notes at risk in the period, most common first', () => {
+    const notes = [
+      note('N-1', 'C-1', '2026-01-01'),
+      note('N-2', 'C-1', '2026-02-01'),
+      note('N-3', 'C-2', '2026-03-01'),
+      note('N-4', 'C-3', '2026-03-01'),
+      note('N-5', 'C-2', '2025-01-01'),
+      note('N-6', 'C-9', '2026-03-01'),
+    ];
+    const signals = [
+      read('N-1', 'high', ['competitor', 'service']),
+      read('N-2', 'medium', ['service']),
+      read('N-3', 'medium', ['service']),
+      read('N-4', 'low', ['price']),
+      read('N-5', 'high', ['price']),
+      read('N-6', 'high', ['billing']),
+    ];
+    const counts = reasonCounts(['C-1', 'C-2', 'C-3'], notes, signals, period);
+    expect(counts).toEqual([
+      { reason: 'service', customers: 2 },
+      { reason: 'competitor', customers: 1 },
+    ]);
   });
 });

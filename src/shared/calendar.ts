@@ -32,6 +32,12 @@ export function monthLabel(month: string): string {
   return `${MONTH_NAMES[m - 1]} ${year}`;
 }
 
+/** `Jan 25, 2026` for `2026-01-25`. */
+export function dayLabel(iso: string): string {
+  const [year, m, day] = iso.split('-').map(Number);
+  return `${MONTH_NAMES[m - 1]} ${day}, ${year}`;
+}
+
 export function addDays(iso: string, days: number): string {
   const date = toDate(iso);
   date.setUTCDate(date.getUTCDate() + days);

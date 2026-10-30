@@ -8,6 +8,7 @@ import type { CustomerRecord } from '../../../src/model/model';
 import { count, usd } from '../../../src/shared/format';
 import { sumMoney } from '../../../src/shared/money';
 import { Change } from '../components/Change';
+import { CustomerLink } from '../components/CustomerLink';
 
 const STEP_LABELS: Record<BridgeKind, string> = {
   stopped: 'Stopped billing',
@@ -134,7 +135,11 @@ function MoverList({ step, names }: { step: BridgeStep; names: Map<string, strin
             {shown.map((m) => (
               <tr key={m.customerId ?? 'none'} className="border-hairline border-t">
                 <td className="py-1.5">
-                  {m.customerId === null ? 'Invoices with no customer' : (names.get(m.customerId) ?? m.customerId)}
+                  {m.customerId === null ? (
+                    'Invoices with no customer'
+                  ) : (
+                    <CustomerLink customerId={m.customerId}>{names.get(m.customerId) ?? m.customerId}</CustomerLink>
+                  )}
                 </td>
                 <td className="py-1.5 text-right text-ink-secondary">{usd(m.previous)}</td>
                 <td className="py-1.5 text-right text-ink-secondary">{usd(m.current)}</td>

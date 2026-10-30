@@ -4,7 +4,7 @@
 
 import type { BillingAnalysis } from '../billing/analyze';
 import { type BilledInvoice, byServiceLine, change } from '../billing/billing';
-import type { Finding } from '../findings/cases';
+import { describeCase, type Finding, findingsAbout } from '../findings/cases';
 import type { Contract, CustomerRecord } from '../model/model';
 import type { CustomerAssessment } from '../risk/worklist';
 import { monthLabel, monthOf, monthsBetween, type Period } from '../shared/calendar';
@@ -15,12 +15,6 @@ export interface Fact {
   id: string;
   text: string;
 }
-
-/** Findings about how a name or a row was exported, which say nothing about the account. */
-const NOT_ABOUT_THE_ACCOUNT = ['duplicateInvoices', 'shortenedNoteNames', 'nameVariants'];
-
-/** The key of an invoice case: its source and number. */
-const INVOICE_KEY = /^(quickbooks|netsuite):/;
 
 /** At most this many cases of one finding are spelled out; the rest are counted. */
 const CASES_PER_FINDING = 5;
@@ -134,27 +128,12 @@ function comparison(invoices: BilledInvoice[], previous: Period, current: Period
 
 /** One fact per data finding about this customer, so the story does not read a data problem as a loss. */
 function findingFacts({ customer, findings }: FactSources): string[] {
-  const relevant = findings.filter((f) => !NOT_ABOUT_THE_ACCOUNT.includes(f.id));
   const facts: string[] = [];
-  for (const finding of relevant) {
-    const cases = finding.cases.filter((c) => c.customerId === customer.id);
-    if (cases.length === 0) continue;
-    const shown = cases.slice(0, CASES_PER_FINDING).map((c) => {
-      const label = withoutName(c.label, customer.name);
-      // An invoice case has its date as detail and its amount; any other case explains itself in the detail.
-      const isInvoice = INVOICE_KEY.test(c.key);
-      if (isInvoice) return `${label} on ${c.detail}, ${usd(c.amount ?? 0)}`;
-      return c.detail ? `${label}: ${c.detail.replace(/\.$/, '')}` : label;
-    });
+  for (const { finding, cases } of findingsAbout(findings, customer.id)) {
+    const shown = cases.slice(0, CASES_PER_FINDING).map((c) => describeCase(c, customer.name));
     const more = cases.length - shown.length;
     const rest = more > 0 ? `; and ${more} more` : '';
     facts.push(`Data finding, ${finding.title}: ${shown.join('; ')}${rest}.`);
   }
   return facts;
-}
-
-/** A case label without the customer's name, which the story already knows: "CTR-6079", not "Acme · CTR-6079". */
-function withoutName(label: string, name: string): string {
-  const parts = label.split(' · ').filter((part) => part !== name);
-  return parts.join(' · ') || label;
 }

@@ -1,24 +1,19 @@
-// The app's frame: a header with the screens and the screen in view. Each screen has its own address, so
-// a link or a reload lands on the same screen.
+// The app's frame: a header with the screens, the screen in view and, over it, the customer panel when a
+// customer is open. Each view has its own address, so a link or a reload lands on the same view.
 
-import { useEffect, useState } from 'react';
 import { BillingPage } from './billing/BillingPage';
+import { CustomerPanel } from './customer/CustomerPanel';
+import { hrefOf, useRoute } from './route';
+import { WorklistPage } from './worklist/WorklistPage';
 
-const SCREENS = [{ path: 'billing', label: 'Billing', render: () => <BillingPage /> }];
-
-function currentPath(): string {
-  const path = window.location.hash.replace(/^#\/?/, '');
-  return SCREENS.some((s) => s.path === path) ? path : SCREENS[0].path;
-}
+const SCREENS = [
+  { path: 'billing', label: 'Billing', render: () => <BillingPage /> },
+  { path: 'worklist', label: 'Worklist', render: () => <WorklistPage /> },
+];
 
 export function App() {
-  const [path, setPath] = useState(currentPath);
-  useEffect(() => {
-    const onChange = () => setPath(currentPath());
-    window.addEventListener('hashchange', onChange);
-    return () => window.removeEventListener('hashchange', onChange);
-  }, []);
-  const screen = SCREENS.find((s) => s.path === path) ?? SCREENS[0];
+  const route = useRoute();
+  const screen = SCREENS.find((s) => s.path === route.screen) ?? SCREENS[0];
 
   return (
     <div className="min-h-screen bg-page font-sans text-ink">
@@ -32,9 +27,9 @@ export function App() {
             {SCREENS.map((s) => (
               <a
                 key={s.path}
-                href={`#/${s.path}`}
-                aria-current={s.path === path ? 'page' : undefined}
-                className={`rounded-md px-3 py-1.5 text-sm ${s.path === path ? 'bg-page font-medium text-ink' : 'text-ink-secondary hover:bg-page'}`}
+                href={hrefOf(s.path)}
+                aria-current={s === screen ? 'page' : undefined}
+                className={`rounded-md px-3 py-1.5 text-sm ${s === screen ? 'bg-page font-medium text-ink' : 'text-ink-secondary hover:bg-page'}`}
               >
                 {s.label}
               </a>
@@ -43,6 +38,7 @@ export function App() {
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-6 py-8">{screen.render()}</main>
+      {route.customer && <CustomerPanel customerId={route.customer} />}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   addMonths,
+  dayLabel,
   fiscalHalf,
   fiscalYearOf,
   halfWindow,
@@ -68,5 +69,11 @@ describe('twelve-month window', () => {
   it('works from a date in the middle of a month', () => {
     const { current } = twelveMonthWindow('2026-09-15');
     expect(current).toMatchObject({ start: '2025-09-16', end: '2026-09-15' });
+  });
+});
+
+describe('dayLabel', () => {
+  it('writes a date the way people read it', () => {
+    expect(dayLabel('2026-01-05')).toBe('Jan 5, 2026');
   });
 });

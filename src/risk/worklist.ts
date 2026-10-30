@@ -6,17 +6,15 @@ import type { BillingAnalysis } from '../billing/analyze';
 import { type BillingStatus, billedInvoices, billingStatus, lastInvoiceOf, totalIn } from '../billing/billing';
 import type { Parameters } from '../model/assumptions';
 import { type Contract, currentContractOf, type Model, type Note } from '../model/model';
-import { addMonths, daysBetween, type Period, twelveMonthsTo, type Window } from '../shared/calendar';
+import { addMonths, contains, daysBetween, type Period, twelveMonthsTo, type Window } from '../shared/calendar';
 import { groupBy } from '../shared/collections';
+import { WORKLIST_GROUPS, type WorklistGroup } from './groups';
 import { worstNoteByCustomer } from './noteRisk';
 import type { NoteSignal } from './notes';
 import { declineOf, type Risk, riskOf } from './risk';
-import type { RiskLevel } from './scale';
+import { isAtRisk, REASONS, type Reason, type RiskLevel } from './scale';
 
-export type WorklistGroup = 'actNow' | 'renewals' | 'monitor' | 'winBack';
-
-/** The order the groups are shown in. They are assigned in another order: see `groupOf`. */
-export const WORKLIST_GROUPS: WorklistGroup[] = ['actNow', 'renewals', 'monitor', 'winBack'];
+export { WORKLIST_GROUPS, type WorklistGroup } from './groups';
 
 /** Why a customer stopped billing, as far as the data tells. */
 export type StoppedReason = 'confirmedInNotes' | 'contractActive' | 'unknown';
@@ -59,6 +57,12 @@ export interface CustomerAssessment {
   healthyAutoRenewal: boolean;
 }
 
+/** How many customers in the worklist have a note at risk giving this reason. */
+export interface ReasonCount {
+  reason: Reason;
+  customers: number;
+}
+
 export interface Worklist {
   asOf: string;
   /** The period the worst note is taken from. */
@@ -67,6 +71,8 @@ export interface Worklist {
   declineWindow: Window;
   /** Every customer, those in the worklist first, in the order they are shown. */
   customers: CustomerAssessment[];
+  /** Why the customers in the worklist are at risk, as their notes of the period say, most common first. */
+  reasons: ReasonCount[];
 }
 
 export function buildWorklist(
@@ -122,7 +128,37 @@ export function buildWorklist(
     };
   });
   const sorted = customers.sort(byDisplayOrder);
-  return { asOf, notesPeriod: lastTwelveMonths, declineWindow, customers: sorted };
+  const inWorklist = sorted.filter((c) => c.group !== null).map((c) => c.customerId);
+  const reasons = reasonCounts(inWorklist, model.notes, signals, lastTwelveMonths);
+  return { asOf, notesPeriod: lastTwelveMonths, declineWindow, customers: sorted, reasons };
+}
+
+/**
+ * For each reason, the customers with a note at risk (medium or high) in the period that gives it; a
+ * customer counts once per reason, however many notes give it.
+ */
+export function reasonCounts(
+  customerIds: string[],
+  notes: Note[],
+  signals: NoteSignal[],
+  period: Period,
+): ReasonCount[] {
+  const included = new Set(customerIds);
+  const signalOf = new Map(signals.map((s) => [s.noteId, s]));
+  const customersBy = new Map<Reason, Set<string>>();
+  for (const note of notes) {
+    const signal = signalOf.get(note.id);
+    const counted = note.customerId !== null && included.has(note.customerId) && contains(period, note.date);
+    if (!signal || !counted || !isAtRisk(signal.risk)) continue;
+    for (const reason of signal.reasons) {
+      const customers = customersBy.get(reason) ?? new Set();
+      customers.add(note.customerId as string);
+      customersBy.set(reason, customers);
+    }
+  }
+  const counts = REASONS.map((reason) => ({ reason, customers: customersBy.get(reason)?.size ?? 0 }));
+  const given = counts.filter((c) => c.customers > 0);
+  return given.sort((a, b) => b.customers - a.customers);
 }
 
 function renewalOf(contract: Contract, asOf: string): Renewal {

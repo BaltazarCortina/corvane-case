@@ -111,7 +111,7 @@ for lint and format.
 | 10 | Risk and worklist | Risk matrix, renewals, amount at stake, worklist groups | Done |
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | Done |
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | Done |
-| 13 | Worklist and customer panel | The worklist and the customer detail | |
+| 13 | Worklist and customer panel | The worklist and the customer detail | Done |
 | 14 | Data screen | Data health, reconciliation and AI checks | |
 | 15 | Summary screen | The three answers on one screen | |
 | 16 | Fine-tuning | Manual assignments and exceptions for single cases | |
@@ -308,9 +308,8 @@ reads as medium (stage 9) do not change any customer's group.
 
 - Worklist: the four groups, owner, reason, amount at stake, contract end; the auto-renewal toggle; why
   customers are at risk (reasons from the notes).
-- Customer panel: status and why, contract and the share of its value billed in the last 12 months,
-  timeline of notes and monthly billing, the story with readable citations, the data findings that
-  touch this customer.
+- Customer panel, as a side panel over any screen: status and why, amount at stake, billing change and
+  contract, the story with readable citations, the notes, the data findings that touch this customer.
 
 ### 14. Data screen
 
@@ -607,3 +606,28 @@ still open; the last twelve months at $39.1M, +0.8% (−1.2%), flagged as crossi
 atypical invoices visible on top of their months; and the bridge from $21.1M to $19.6M, opening on the 74
 customers that billed less (−$2.6M).
 
+### 13. Worklist and customer panel
+
+The worklist step now also counts why the customers in the worklist are at risk: for each reason, the
+customers with a note at medium or high risk in the last twelve months that gives it.
+`src/risk/groups.ts` holds the groups and their display order apart from the rules, so the app can use
+them without loading the pipeline, and `describeCase` in `src/findings/cases.ts` tells a finding's case
+about its own customer, for the stories and the panel alike. The worklist screen leads with Act now (the
+customers and the amount at stake, the largest customer and its share, how pressing the contracts are and
+who owns them) and, beside it, why customers are at risk; the four groups follow as tabs with their
+customers and amount at stake, each a table with owner, risk level and reason (or, in Win back, why the
+customer stopped and its last invoice), amount at stake and contract end; Renewals hides the healthy
+auto-renewals behind a switch. The rules of the groups and of the risk level are in definitions next to
+them. Risk levels are a colored dot with their name: red for high, orange for medium, blue for low. A
+customer opens in a side panel over the screen it was opened from, the worklist or the bridge in billing,
+and its address keeps it, so a link lands on it: where it stands and why, the amount at stake, the
+billing change and the contract; the story, with its sources as small references after each claim, like
+footnotes: a note by its number in the list below and a fact by its letter in the data the story was
+written from, listed closed under it; each shows its source on hover and takes you to it; plus the
+verifier's result; the notes, numbered oldest first and listed newest first, each with its risk, reasons
+and quote marked; and the data findings that touch it. Tests cover the reason counts.
+
+Outcome: Act now holds 14 customers and $5.2M at stake, 5 of them at high risk; Renewals 11 to $2.0M,
+plus 19 healthy auto-renewals hidden; Monitor 28 to $5.4M; Win back 12 to $3.7M. The notes at risk give
+service problems and a competitor for 9 customers each, price for 5, billing disputes for 4 and other
+reasons for 2.

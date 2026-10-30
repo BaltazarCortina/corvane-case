@@ -392,6 +392,13 @@ recorded.
 last invoice or since; otherwise, contract still in force when its end date has not passed, which may be
 work done and not invoiced, or a cancellation nobody recorded; otherwise, unknown.
 
+### Why customers are at risk is counted by customer, from their notes
+
+**Criterion.** For each reason the notes can give (service, price, competitor, billing, other), the
+customers in the worklist with a note at medium or high risk in the last twelve months that gives it. A
+customer counts once per reason, however many notes repeat it, and can count under more than one reason,
+so the counts do not add up to the customers in the worklist.
+
 ## Customer stories
 
 ### Stories are written for the customers someone has to act on
