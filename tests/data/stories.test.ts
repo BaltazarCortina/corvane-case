@@ -14,8 +14,8 @@ import { readJson } from '../../src/shared/files';
 import { type CustomerStory, storyInputs } from '../../src/stories/stories';
 import { verifyStory } from '../../src/stories/verify';
 
-const signalsFile = join(paths.llm, 'note-signals.json');
-const storiesFile = join(paths.llm, 'stories.json');
+const signalsFile = join(paths.build, 'note-signals.json');
+const storiesFile = join(paths.build, 'stories.json');
 const ready = existsSync(signalsFile) && existsSync(storiesFile);
 
 describe.skipIf(!ready)('the customer stories of the real data', () => {

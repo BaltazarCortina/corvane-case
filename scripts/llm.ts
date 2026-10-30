@@ -1,15 +1,16 @@
-// Runs the LLM over the model in data/build and writes its output to data/llm: a signal for every account
-// note, the worklist that needs them, and a story for the worklist customers with notes. Answers are
-// cached, so running again only asks about what changed.
+// Runs the LLM over the model in data/build and writes its output there too: a signal for every account
+// note, the worklist that needs them, and a story for the worklist customers with notes. It uses the
+// parameters the pipeline used, so the worklist agrees with the billing it reads. Answers are cached in
+// data/cache/llm, so running again only asks about what changed.
 
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { BillingAnalysis } from '../src/billing/analyze';
 import { billedInvoices } from '../src/billing/billing';
 import type { Finding } from '../src/findings/cases';
 import { mapLimit } from '../src/llm/ask';
 import { llmFromEnv } from '../src/llm/provider';
-import { loadAssumptions } from '../src/model/assumptions';
+import type { Parameters } from '../src/model/assumptions';
 import type { Model } from '../src/model/model';
 import { paths } from '../src/paths';
 import { classifyNote, type NoteSignal } from '../src/risk/notes';
@@ -27,7 +28,7 @@ if (!llm) {
 const model = readJson<Model>(join(paths.build, 'model.json'));
 const billing = readJson<BillingAnalysis>(join(paths.build, 'billing.json'));
 const findings = readJson<Finding[]>(join(paths.build, 'findings.json'));
-const { parameters } = loadAssumptions(paths.assumptions);
+const parameters = readJson<Parameters>(join(paths.build, 'parameters.json'));
 
 console.log(`Reading ${model.notes.length} account notes with ${llm.modelId}...`);
 const notesCache = join(paths.llmCache, 'notes');
@@ -42,15 +43,14 @@ const storiesCache = join(paths.llmCache, 'stories');
 const stories = await mapLimit(inputs, 8, (input) => writeStory(input, llm, storiesCache, billing.asOf));
 
 const outputs = { 'note-signals.json': signals, 'worklist.json': worklist, 'stories.json': stories };
-mkdirSync(paths.llm, { recursive: true });
 for (const [file, content] of Object.entries(outputs)) {
   const json = JSON.stringify(content, null, 2);
-  writeFileSync(join(paths.llm, file), `${json}\n`);
+  writeFileSync(join(paths.build, file), `${json}\n`);
 }
 
 const summary = [...summaryLines(signals), ...worklistLines(worklist), ...storyLines(stories)];
 console.log(summary.join('\n'));
-console.log(`\nWrote ${Object.keys(outputs).join(', ')} to ${paths.llm}`);
+console.log(`\nWrote ${Object.keys(outputs).join(', ')} to ${paths.build}`);
 
 function summaryLines(signals: NoteSignal[]): string[] {
   const byRisk = RISK_LEVELS.map((risk) => `${signals.filter((s) => s.risk === risk).length} ${risk}`);

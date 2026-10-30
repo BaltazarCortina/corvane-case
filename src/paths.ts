@@ -8,8 +8,8 @@ export const paths = {
   raw: `${root}data/raw`,
   build: `${root}data/build`,
   eval: `${root}eval`,
-  llm: `${root}data/llm`,
-  llmCache: `${root}data/llm/cache`,
+  /** The LLM's answers, apart from the outputs: clearing those does not ask the LLM again. */
+  llmCache: `${root}data/cache/llm`,
   reference: `${root}config/reference.yml`,
   assumptions: `${root}config/assumptions.yml`,
 };

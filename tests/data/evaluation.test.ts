@@ -11,7 +11,7 @@ import { paths } from '../../src/paths';
 import type { NoteSignal } from '../../src/risk/notes';
 import { readJson } from '../../src/shared/files';
 
-const signalsFile = join(paths.llm, 'note-signals.json');
+const signalsFile = join(paths.build, 'note-signals.json');
 
 describe.skipIf(!existsSync(signalsFile))('the evaluation of the real notes', () => {
   it('scores every labeled note, and the groups stand for all the notes', () => {

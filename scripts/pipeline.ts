@@ -1,5 +1,6 @@
 // Runs the pipeline over the exports in data/raw and writes everything that does not need the LLM to
-// data/build: the model, the billing analysis and the data findings. Nothing downstream recomputes them.
+// data/build: the model, the billing analysis, the data findings and the parameters they were computed
+// with. Nothing downstream recomputes them, and the later steps read those parameters, not the config.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -14,7 +15,12 @@ const inputs = loadInputs(paths);
 const built = build(inputs);
 const findings = detectFindings(inputs, built);
 
-const outputs = { 'model.json': built.model, 'billing.json': built.billing, 'findings.json': findings };
+const outputs = {
+  'model.json': built.model,
+  'billing.json': built.billing,
+  'findings.json': findings,
+  'parameters.json': inputs.assumptions.parameters,
+};
 mkdirSync(paths.build, { recursive: true });
 for (const [file, content] of Object.entries(outputs)) {
   const json = JSON.stringify(content);

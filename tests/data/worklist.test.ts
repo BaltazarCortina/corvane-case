@@ -10,7 +10,7 @@ import type { NoteSignal } from '../../src/risk/notes';
 import { buildWorklist, type Worklist } from '../../src/risk/worklist';
 import { readJson } from '../../src/shared/files';
 
-const signalsFile = join(paths.llm, 'note-signals.json');
+const signalsFile = join(paths.build, 'note-signals.json');
 
 /** Escalations to the customer's management with a demand for credits: high to a person, medium to the LLM. */
 const ESCALATION_NOTES = ['N-5414', 'N-5437', 'N-5597'];

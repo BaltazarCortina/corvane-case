@@ -1,4 +1,4 @@
-// Scores the LLM's reading of the account notes and writes the report to data/llm/eval-report.json.
+// Scores the LLM's reading of the account notes and writes the report to data/build/eval-report.json.
 // Needs `npm run pipeline`, `npm run llm` and the hand labels in eval/labels.csv.
 
 import { writeFileSync } from 'node:fs';
@@ -13,12 +13,12 @@ import { readJson } from '../src/shared/files';
 
 const model = readJson<Model>(join(paths.build, 'model.json'));
 const billing = readJson<BillingAnalysis>(join(paths.build, 'billing.json'));
-const signals = readJson<NoteSignal[]>(join(paths.llm, 'note-signals.json'));
+const signals = readJson<NoteSignal[]>(join(paths.build, 'note-signals.json'));
 const labels = loadLabels(join(paths.eval, 'labels.csv'));
 const evaluatedAt = new Date().toISOString().slice(0, 10);
 
 const report = evaluate(model, billing, signals, labels, evaluatedAt);
-const output = join(paths.llm, 'eval-report.json');
+const output = join(paths.build, 'eval-report.json');
 const json = JSON.stringify(report, null, 2);
 writeFileSync(output, `${json}\n`);
 

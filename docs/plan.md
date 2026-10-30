@@ -25,7 +25,8 @@ LLM reading the account notes.
 
 - **Build once, then read.** A pipeline turns the raw exports into a clean model, the billing analysis
   and the data findings. It is a pure function (`exports + config → outputs`), runs in well under a
-  second, and its output is what the LLM steps, the evaluation and the server read. What is expensive,
+  second, and its output is what the LLM steps, the evaluation and the server read, including the
+  parameters it used: a change to the config shows only once the pipeline runs again, everywhere at once. What is expensive,
   or needs the raw exports, is computed once and saved; what derives cheaply from saved outputs is
   computed by a pure function in the step that needs it, and saved too. The server only reads files,
   so the numbers are reproducible and never change while someone is looking at them.
@@ -45,12 +46,12 @@ LLM reading the account notes.
 
 ```
 data/raw/*.csv ──┐
-config/*.yml ────┴─► npm run pipeline ──► data/build/   model, billing analysis, data findings
+config/*.yml ────┴─► npm run pipeline ──► data/build/   model, billing analysis, data findings, parameters
                      parse → resolve customers → model → billing → findings
                                 │
                                 ▼
-                     npm run llm ──► data/llm/   note signals → risk and worklist → customer stories
-                                │       └─► eval/   scores against hand labels
+                     npm run llm ──► data/build/   note signals → risk and worklist → customer stories
+                                │       └─► npm run eval ──► data/build/   scores against the hand labels in eval/
                                 ▼
                      API (Hono) ──► web (React): Summary · Billing · Worklist · Data
 ```
@@ -69,8 +70,8 @@ Layout:
 |---|---|
 | `config/assumptions.yml` | Our criteria: each assumption with its policy, basis and status, plus business parameters |
 | `config/reference.yml` | Mechanical mappings: state and industry spellings, QuickBooks memos to service lines |
-| `data/build/` | Pipeline output. Regenerated, not versioned |
-| `data/llm/` | LLM output and its cache. Regenerated, not versioned |
+| `data/build/` | Everything the steps write: the pipeline, the LLM step and the evaluation. Regenerated, not versioned |
+| `data/cache/llm/` | The LLM's answers, kept apart so clearing the outputs does not ask again. Not versioned |
 | `data/raw/` | The exports exactly as received. Never edited |
 | `docs/` | This plan and the decisions behind the numbers |
 | `eval/` | The hand-labeled note sample |
@@ -245,7 +246,7 @@ sample has a valid label.
     acts; **low** = minor or resolved friction; **none** = routine or positive.
   - Reasons (one or more, only with risk): service, price, competitor, billing, other.
   - Note type: customer, internal, prospect.
-- Cache keyed by prompt version, model and the exact input; results written to `data/llm/`.
+- Cache keyed by prompt version, model and the exact input; results written to `data/build/`.
 - Check: every quote must appear verbatim in its note.
 
 **Done when:** every note classified; every quote verbatim.
@@ -257,7 +258,7 @@ sample has a valid label.
 - The keyword screen as a baseline, scored the same way; where it disagrees with the LLM, the note is
   reviewed.
 - Cross-check with billing: did customers flagged at risk bill less?
-- A report in `data/llm/` that the app shows in stage 14.
+- A report in `data/build/` that the app shows in stage 14.
 
 **Done when:** the report runs from the hand labels; the disagreements have been read.
 
@@ -297,7 +298,7 @@ reads as medium (stage 9) do not change any customer's group.
 
 ### 12. API, app shell and billing screen
 
-- Hono API that reads the files in `data/build/` and `data/llm/` and serves them; it computes nothing.
+- Hono API that reads the files in `data/build/` and serves them; it computes nothing.
 - React app with Vite and Tailwind: layout and navigation.
 - Billing screen: the two windows with and without atypical invoices, monthly chart (partial month
   marked), breakdown by service line, the bridge with the customers behind each step. Definitions
@@ -319,6 +320,11 @@ reads as medium (stage 9) do not change any customer's group.
 - Observations: those worth checking first, the informative ones collapsed. Notes linked to no customer
   are split into prospects (by the note type the LLM reads in stage 8) and names still to resolve, each
   with its risk level. Definitions, including the note risk scale.
+- The money a customer's case involves (expired contracts still billing, customers without an account
+  manager) is its amount at stake, the same the worklist shows. Today the findings use the billing of the
+  last twelve months, which matches it except for customers that stopped billing, where it undersells
+  them (two cases: $11k instead of $220k, $150k instead of $221k). The amount at stake moves to
+  `src/billing/` and both use it; only those amounts in `findings.json` change.
 - How the AI was checked: evaluation scores, quote and story verification results.
 
 ### 15. Summary screen
@@ -492,7 +498,7 @@ and gets back a risk level, reasons, a note type, a quote and a one-line summary
 The quote is checked in code against the note. `src/llm/provider.ts` is the only file that knows the
 provider (OpenAI, through the Vercel AI SDK); `src/llm/cache.ts` keeps each answer under a key of
 prompt version, model and input. `npm run llm` runs it over every note, eight at a time, and writes
-`data/llm/note-signals.json`. Tests cover the quote check and the clean-up of answers without calling
+`data/build/note-signals.json`. Tests cover the quote check and the clean-up of answers without calling
 the LLM; on the real data, every note has one signal, every risk has a quote found in its note, and
 reasons come only with risk.
 
@@ -507,7 +513,7 @@ medium with a comment.
 its group it stands for; `src/eval/evaluate.ts` builds the report: the LLM against the labels, the
 keyword screen as a baseline, the confusion between levels, every disagreement, and the billing check,
 which groups customers by the highest risk in their notes (`src/risk/noteRisk.ts`) and compares
-their billing between the two halves. `npm run eval` writes `data/llm/eval-report.json` with the model,
+their billing between the two halves. `npm run eval` writes `data/build/eval-report.json` with the model,
 prompt version and date. Tests cover the weighting, the scores and the highest risk per customer; on the
 real data, every labeled note is scored and the groups add up to all the notes.
 
@@ -539,7 +545,7 @@ to be in order. `src/risk/risk.ts` grades the decline and combines it with the w
 with a one-line reason per level; `src/risk/worklist.ts` gives every customer its billing status,
 risk, renewal, amount at stake and, for those that stopped, why, and places it in a group by the first
 rule that matches. `npm run llm` builds it right after the note signals and writes
-`data/llm/worklist.json`, in the order it is shown. Tests cover the matrix, the decline thresholds and
+`data/build/worklist.json`, in the order it is shown. Tests cover the matrix, the decline thresholds and
 minimum, each group rule and their order, the amount at stake before and after stopping, the reasons for
 stopping and the display order; on the real data, every customer is assessed once, every customer at
 high risk that still bills is in Act now, and reading the three escalation notes as high, as the hand
@@ -562,7 +568,7 @@ the app writes them. `src/stories/stories.ts` picks the customers that get a sto
 facts and notes, oldest first; the answer is a headline, a trajectory, and the root cause, current state
 and suggested next step, each citing facts and notes. `src/stories/verify.ts` checks every citation, amount,
 percentage and date against what the claim cites. `npm run llm` writes the stories, each with its facts
-and its check, to `data/llm/stories.json`. Tests cover the verifier (missing and unknown citations,
+and its check, to `data/build/stories.json`. Tests cover the verifier (missing and unknown citations,
 numbers and dates not in the cited sources, the headline), the choice of customers, the order of the
 notes and the facts; on the real data, there is one story per customer that needs one, written from the
 current facts and notes, and each carries the result the verifier gives today.
