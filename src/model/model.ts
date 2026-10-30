@@ -101,7 +101,7 @@ export interface Model {
   configProblems: string[];
 }
 
-export function buildModel(parsed: ParsedExports, resolution: Resolution, assumptions: Assumptions): Model {
+export function assembleModel(parsed: ParsedExports, resolution: Resolution, assumptions: Assumptions): Model {
   const quickbooksInvoices = parsed.quickbooks.map((row) => invoiceFromQuickBooks(row, resolution, assumptions));
   const netsuiteInvoices = parsed.netsuite.map((row) => invoiceFromNetSuite(row, resolution, assumptions));
   const invoices = [...quickbooksInvoices, ...netsuiteInvoices];
@@ -242,6 +242,12 @@ function aliasesByCustomer(resolution: Resolution): Map<string, Alias[]> {
     }
   }
   return out;
+}
+
+/** Looks up a customer's current contract: null when it has none on file. */
+export function currentContractOf(model: Pick<Model, 'contracts'>): (customer: CustomerRecord) => Contract | null {
+  const contracts = new Map(model.contracts.map((c) => [c.id, c]));
+  return (customer) => (customer.contractId ? (contracts.get(customer.contractId) ?? null) : null);
 }
 
 /**

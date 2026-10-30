@@ -3,8 +3,8 @@
 // writes them, so a number copied from a fact matches it exactly.
 
 import type { BillingAnalysis } from '../billing/analyze';
-import { type BilledInvoice, byServiceLine, totalIn } from '../billing/billing';
-import type { Finding } from '../findings/findings';
+import { type BilledInvoice, byServiceLine, change } from '../billing/billing';
+import type { Finding } from '../findings/cases';
 import type { Contract, CustomerRecord } from '../model/model';
 import type { CustomerAssessment } from '../risk/worklist';
 import { monthLabel, monthOf, monthsBetween, type Period } from '../shared/calendar';
@@ -127,10 +127,9 @@ function billingFacts({ invoices, billing }: FactSources): string[] {
 }
 
 function comparison(invoices: BilledInvoice[], previous: Period, current: Period): string {
-  const before = totalIn(invoices, previous);
-  const after = totalIn(invoices, current);
-  const change = before === 0 ? 'no billing to compare with' : percent(((after - before) / before) * 100);
-  return `${previous.label} ${usd(before)}, ${current.label} ${usd(after)} (${change})`;
+  const billed = change(invoices, { previous, current });
+  const variation = billed.changePct === null ? 'no billing to compare with' : percent(billed.changePct);
+  return `${previous.label} ${usd(billed.previous)}, ${current.label} ${usd(billed.current)} (${variation})`;
 }
 
 /** One fact per data finding about this customer, so the story does not read a data problem as a loss. */

@@ -31,9 +31,3 @@ function isWorse(a: WorstNote, b: WorstNote): boolean {
   const rankB = RISK_LEVELS.indexOf(b.risk);
   return rankA > rankB || (rankA === rankB && a.date > b.date);
 }
-
-export function worstNoteRiskByCustomer(notes: Note[], signals: NoteSignal[], period: Period): Map<string, RiskLevel> {
-  const worst = worstNoteByCustomer(notes, signals, period);
-  const entries = [...worst].map(([customerId, note]) => [customerId, note.risk] as const);
-  return new Map(entries);
-}

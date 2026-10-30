@@ -3,7 +3,7 @@
 
 import type { BillingAnalysis } from '../billing/analyze';
 import type { Model, Note } from '../model/model';
-import { worstNoteRiskByCustomer } from '../risk/noteRisk';
+import { worstNoteByCustomer } from '../risk/noteRisk';
 import type { NoteSignal } from '../risk/notes';
 import { isAtRisk, RISK_LEVELS, type RiskLevel } from '../risk/scale';
 import { mentionsRiskWord } from './keywords';
@@ -128,11 +128,11 @@ function confusionOf(labeled: { label: Label; signal: NoteSignal }[]): Evaluatio
  */
 function billingCheck(model: Model, billing: BillingAnalysis, signals: NoteSignal[]): BillingCheckRow[] {
   const period = billing.twelveMonths.window.current;
-  const worstRisk = worstNoteRiskByCustomer(model.notes, signals, period);
+  const worstNotes = worstNoteByCustomer(model.notes, signals, period);
   const movers = billing.bridge.steps.flatMap((s) => s.movers).filter((m) => m.customerId !== null && m.previous > 0);
   const groups: BillingCheckRow['notesSay'][] = ['high', 'medium', 'low', 'none', 'no notes'];
   return groups.map((notesSay) => {
-    const inGroup = movers.filter((m) => (worstRisk.get(m.customerId ?? '') ?? 'no notes') === notesSay);
+    const inGroup = movers.filter((m) => (worstNotes.get(m.customerId ?? '')?.risk ?? 'no notes') === notesSay);
     const changes = inGroup.map((m) => (m.change / m.previous) * 100);
     const billingLess = inGroup.filter((m) => m.change < 0).length;
     return {

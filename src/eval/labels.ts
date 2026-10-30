@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
 import { NOTE_TYPES, type NoteType, REASONS, type Reason, RISK_LEVELS, type RiskLevel } from '../risk/scale';
+import { formatIssues } from '../shared/validation';
 
 export interface Label {
   noteId: string;
@@ -41,7 +42,7 @@ export function parseLabels(text: string): Label[] {
     };
     const result = rowSchema.safeParse(row);
     if (!result.success) {
-      const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+      const issues = formatIssues(result.error);
       throw new Error(`Label on line ${info.lines}: ${issues}`);
     }
     const label = result.data;

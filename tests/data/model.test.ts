@@ -1,12 +1,12 @@
 // Invariants on the model built from the real exports.
 
 import { describe, expect, it } from 'vitest';
-import { build, loadInputs } from '../../src/model/build';
+import { buildModel, loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
 import { sumMoney } from '../../src/shared/money';
 
 const inputs = loadInputs(paths);
-const model = build(inputs);
+const model = buildModel(inputs);
 const customerIds = new Set(model.customers.map((c) => c.id));
 
 describe('the model built from the real exports', () => {

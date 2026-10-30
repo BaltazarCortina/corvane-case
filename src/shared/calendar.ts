@@ -1,7 +1,7 @@
 // Dates and periods. Dates are ISO strings (`YYYY-MM-DD`), which sort and compare as text. A fiscal
 // year is named by the calendar year it ends in: with an April start, FY27 runs April 2026 to March 2027.
 
-const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+export const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export interface Period {
   label: string;

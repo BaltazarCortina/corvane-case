@@ -1,14 +1,13 @@
 // Invariants on the billing analysis of the real exports.
 
 import { describe, expect, it } from 'vitest';
-import { analyzeBilling } from '../../src/billing/analyze';
-import { build, loadInputs } from '../../src/model/build';
+import { build } from '../../src/build';
+import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
 import { sumMoney } from '../../src/shared/money';
 
 const inputs = loadInputs(paths);
-const model = build(inputs);
-const billing = analyzeBilling(model, inputs.assumptions.parameters, inputs.reference.fiscalYearStartMonth);
+const { model, billing } = build(inputs);
 
 describe('billing from the real exports', () => {
   it('compares two complete periods', () => {

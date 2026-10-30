@@ -1,7 +1,7 @@
 // Scores the LLM's reading of the account notes and writes the report to data/llm/eval-report.json.
 // Needs `npm run pipeline`, `npm run llm` and the hand labels in eval/labels.csv.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { BillingAnalysis } from '../src/billing/analyze';
 import { type EvaluationReport, evaluate } from '../src/eval/evaluate';
@@ -9,11 +9,7 @@ import { loadLabels } from '../src/eval/labels';
 import type { Model } from '../src/model/model';
 import { paths } from '../src/paths';
 import type { NoteSignal } from '../src/risk/notes';
-
-const readJson = <T>(file: string): T => {
-  const text = readFileSync(file, 'utf8');
-  return JSON.parse(text);
-};
+import { readJson } from '../src/shared/files';
 
 const model = readJson<Model>(join(paths.build, 'model.json'));
 const billing = readJson<BillingAnalysis>(join(paths.build, 'billing.json'));

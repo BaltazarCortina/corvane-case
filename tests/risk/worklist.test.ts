@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/billing/analyze';
+import { build } from '../../src/build';
 import type { Inputs } from '../../src/model/build';
 import type { Reference } from '../../src/model/reference';
 import type { NoteSignal } from '../../src/risk/notes';
@@ -129,7 +129,7 @@ const signal = (noteId: string, risk: NoteSignal['risk']): NoteSignal => ({
 });
 
 const inputs: Inputs = { raw, reference, assumptions: assumptionsWith() };
-const { model, billing: billingAnalysis } = analyze(inputs);
+const { model, billing: billingAnalysis } = build(inputs);
 const signals = [signal('N-1', 'high'), signal('N-4', 'medium'), signal('N-8', 'medium')];
 const worklist = buildWorklist(model, billingAnalysis, signals, parameters);
 const customer = (id: string) => worklist.customers.find((c) => c.customerId === id);

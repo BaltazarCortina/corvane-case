@@ -1,6 +1,6 @@
 // Builders for small inputs shared across tests.
 
-import type { Assignment, Assumptions, Parameters, Rule } from '../src/model/assumptions';
+import type { Assignment, Assumptions, Parameters, Rule, RuleName } from '../src/model/assumptions';
 import { EXPORTS, type ExportName, parseCsv, type RawExports } from '../src/model/exports';
 import type { Invoice, Model } from '../src/model/model';
 
@@ -18,8 +18,6 @@ export function exportsWith(lines: Partial<Record<ExportName, string[]>>): RawEx
   });
   return Object.fromEntries(entries);
 }
-
-type RuleName = Exclude<keyof Assumptions, 'assignments' | 'parameters'>;
 
 /** Every rule applied, unconfirmed and without exceptions, unless overridden. */
 export function assumptionsWith(

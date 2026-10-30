@@ -59,7 +59,9 @@ The code is organized by what it answers, not by the command that runs it: which
 decided by the entry points in `scripts/`, and moves when a step needs another's output (the worklist
 needs the LLM's reading of the notes, so it runs in `npm run llm`). Dependencies point one way: `shared`
 is used by everything; `billing` reads the `model`; `findings` and `risk` read both; `stories` reads all
-of them; `llm` is infrastructure for `risk` and `stories`; `eval` judges `risk`.
+of them; `llm` is infrastructure for `risk` and `stories`; `eval` judges `risk`. `src/build.ts` builds
+the model and its billing analysis in one function: the pipeline runs it, and the findings run it again
+with each rule reversed.
 
 Layout:
 
@@ -74,6 +76,7 @@ Layout:
 | `eval/` | The hand-labeled note sample |
 | `scripts/` | Command line entry points (pipeline, LLM, evaluation) |
 | `src/billing/` | Net billings: atypical invoices, the two windows, service lines, the bridge |
+| `src/build.ts` | The model and its billing analysis from the inputs, in one pure function |
 | `src/eval/` | Scoring the LLM's reading of the notes against hand labels and the keyword baseline |
 | `src/findings/` | Data findings: assumptions with their impact, and observations |
 | `src/llm/` | The LLM provider and the answer cache |
@@ -429,8 +432,9 @@ customer.
 years and halves, the two windows, as functions of the fiscal year's start month in
 `config/reference.yml`): `billing.ts` (the invoices that count, each marked atypical or not with the
 parameters in `config/assumptions.yml`; totals and changes per window; service lines; the monthly series;
-the open share), `bridge.ts` (the bridge between two periods) and `analyze.ts`, which puts it all together. Each rule is tested on fixtures
-(complete and partial periods, a calendar-year fiscal year, the atypical thresholds, the bridge kinds);
+the open share), `bridge.ts` (the bridge between two periods) and `analyze.ts`, which puts it all
+together; `src/build.ts` builds the model and its billing analysis from the inputs in one function. Each
+rule is tested on fixtures (complete and partial periods, a calendar-year fiscal year, the atypical thresholds, the bridge kinds);
 on the real data, both windows compare complete periods, the bridge adds up to the cent and matches the
 half totals, the service lines add up to the totals, and the months add up to everything counted.
 

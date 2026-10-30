@@ -3,7 +3,8 @@
 
 import type { Parameters } from '../model/assumptions';
 import type { Invoice, Model } from '../model/model';
-import { contains, monthEnd, monthOf, monthsBetween, type Period, type Window } from '../shared/calendar';
+import { addDays, contains, monthEnd, monthOf, monthsBetween, type Period, type Window } from '../shared/calendar';
+import { groupBy } from '../shared/collections';
 import { sumMoney } from '../shared/money';
 
 /** An invoice that counts toward billing, and whether it is atypical for its customer. */
@@ -44,6 +45,21 @@ export interface LineTotal {
 export interface OpenAmount {
   amount: number;
   share: number;
+}
+
+export type BillingStatus = 'billing' | 'stopped' | 'neverBilled';
+
+/** The date of the latest of the invoices, or null when there are none. */
+export function lastInvoiceOf(invoices: Invoice[]): string | null {
+  const dates = invoices.map((i) => i.date).sort();
+  return dates.at(-1) ?? null;
+}
+
+/** Billing when the last invoice is recent enough; stopped otherwise. */
+export function billingStatus(lastInvoice: string | null, asOf: string, parameters: Parameters): BillingStatus {
+  if (lastInvoice === null) return 'neverBilled';
+  const recently = addDays(asOf, -parameters.stoppedBillingDays);
+  return lastInvoice >= recently ? 'billing' : 'stopped';
 }
 
 /** The invoices that count, each marked atypical or not. */
@@ -96,7 +112,8 @@ export function compareWindow(invoices: BilledInvoice[], window: Window, systemC
   return { window, total, withoutAtypical, crossesSystemChange };
 }
 
-function change(invoices: BilledInvoice[], window: Window): Change {
+/** The billing of the invoices in both periods of the window, and how it changed. */
+export function change(invoices: BilledInvoice[], window: Window): Change {
   const current = totalIn(invoices, window.current);
   const previous = totalIn(invoices, window.previous);
   const difference = sumMoney([current, -previous]);
@@ -161,15 +178,4 @@ export function openAmount(invoices: BilledInvoice[], period: Period): OpenAmoun
   const amount = sumMoney(openAmounts);
   const total = sumMoney(trackedAmounts);
   return { amount, share: total === 0 ? 0 : amount / total };
-}
-
-export function groupBy<T, K>(items: T[], key: (item: T) => K): Map<K, T[]> {
-  const out = new Map<K, T[]>();
-  for (const item of items) {
-    const k = key(item);
-    const list = out.get(k) ?? [];
-    list.push(item);
-    out.set(k, list);
-  }
-  return out;
 }

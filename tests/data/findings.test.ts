@@ -1,15 +1,16 @@
 // Invariants on the findings detected in the real exports.
 
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/billing/analyze';
-import { detectFindings, type RuleName, withRuleReversed } from '../../src/findings/findings';
+import { build } from '../../src/build';
+import { detectFindings, withRuleReversed } from '../../src/findings/findings';
+import type { RuleName } from '../../src/model/assumptions';
 import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
 import { contains } from '../../src/shared/calendar';
 import { sumMoney } from '../../src/shared/money';
 
 const inputs = loadInputs(paths);
-const built = analyze(inputs);
+const built = build(inputs);
 const findings = detectFindings(inputs, built);
 const customerIds = new Set(built.model.customers.map((c) => c.id));
 
@@ -17,7 +18,7 @@ describe('findings in the real exports', () => {
   const invoiceRules: RuleName[] = ['duplicateInvoices', 'voidedInvoices', 'creditMemos'];
 
   it.each(invoiceRules)('reversing %s changes the half total by exactly the invoices it affects', (rule) => {
-    const reversed = analyze(withRuleReversed(inputs, rule));
+    const reversed = build(withRuleReversed(inputs, rule));
     const period = built.billing.half.window.current;
     const changedAmounts = built.model.invoices.flatMap((invoice, i) => {
       const before = invoice.excludedBy === null;

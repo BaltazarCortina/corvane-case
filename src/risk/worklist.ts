@@ -3,19 +3,11 @@
 // renewal says when to act; they are kept apart and only meet in the group rules.
 
 import type { BillingAnalysis } from '../billing/analyze';
-import { type BilledInvoice, billedInvoices, groupBy } from '../billing/billing';
+import { type BillingStatus, billedInvoices, billingStatus, lastInvoiceOf, totalIn } from '../billing/billing';
 import type { Parameters } from '../model/assumptions';
-import type { Contract, Model, Note } from '../model/model';
-import {
-  addDays,
-  addMonths,
-  contains,
-  daysBetween,
-  type Period,
-  twelveMonthsTo,
-  type Window,
-} from '../shared/calendar';
-import { sumMoney } from '../shared/money';
+import { type Contract, currentContractOf, type Model, type Note } from '../model/model';
+import { addMonths, daysBetween, type Period, twelveMonthsTo, type Window } from '../shared/calendar';
+import { groupBy } from '../shared/collections';
 import { worstNoteByCustomer } from './noteRisk';
 import type { NoteSignal } from './notes';
 import { declineOf, type Risk, riskOf } from './risk';
@@ -25,8 +17,6 @@ export type WorklistGroup = 'actNow' | 'renewals' | 'monitor' | 'winBack';
 
 /** The order the groups are shown in. They are assigned in another order: see `groupOf`. */
 export const WORKLIST_GROUPS: WorklistGroup[] = ['actNow', 'renewals', 'monitor', 'winBack'];
-
-export type BillingStatus = 'billing' | 'stopped' | 'neverBilled';
 
 /** Why a customer stopped billing, as far as the data tells. */
 export type StoppedReason = 'confirmedInNotes' | 'contractActive' | 'unknown';
@@ -92,25 +82,24 @@ export function buildWorklist(
   const invoicesOf = groupBy(invoices, (i) => i.customerId);
   const notesOf = groupBy(model.notes, (n) => n.customerId);
   const worstNotes = worstNoteByCustomer(model.notes, signals, lastTwelveMonths);
-  const contracts = new Map(model.contracts.map((c) => [c.id, c]));
+  const contractOf = currentContractOf(model);
 
   const customers = model.customers.map((customer) => {
     const own = invoicesOf.get(customer.id) ?? [];
     const typical = own.filter((i) => !i.atypical);
-    const dates = own.map((i) => i.date).sort();
-    const lastInvoice = dates.at(-1) ?? null;
-    const status = statusOf(lastInvoice, asOf, parameters);
-    const contract = customer.contractId ? contracts.get(customer.contractId) : undefined;
+    const lastInvoice = lastInvoiceOf(own);
+    const status = billingStatus(lastInvoice, asOf, parameters);
+    const contract = contractOf(customer);
     const renewal = contract ? renewalOf(contract, asOf) : null;
 
-    const previous = billedIn(typical, declineWindow.previous);
-    const current = billedIn(typical, declineWindow.current);
+    const previous = totalIn(typical, declineWindow.previous);
+    const current = totalIn(typical, declineWindow.current);
     const decline = declineOf(previous, current, parameters);
     const worstNote = worstNotes.get(customer.id) ?? null;
     const risk = riskOf(worstNote, decline);
 
     const stakePeriod = status === 'stopped' && lastInvoice ? twelveMonthsTo(lastInvoice) : lastTwelveMonths;
-    const amountAtStake = billedIn(typical, stakePeriod);
+    const amountAtStake = totalIn(typical, stakePeriod);
     const customerNotes = notesOf.get(customer.id) ?? [];
     const stopped =
       status === 'stopped' && lastInvoice
@@ -134,19 +123,6 @@ export function buildWorklist(
   });
   const sorted = customers.sort(byDisplayOrder);
   return { asOf, notesPeriod: lastTwelveMonths, declineWindow, customers: sorted };
-}
-
-function billedIn(invoices: BilledInvoice[], period: Period): number {
-  const inPeriod = invoices.filter((i) => contains(period, i.date));
-  const amounts = inPeriod.map((i) => i.amount);
-  return sumMoney(amounts);
-}
-
-/** Billing when its last invoice is recent enough; stopped otherwise. */
-function statusOf(lastInvoice: string | null, asOf: string, parameters: Parameters): BillingStatus {
-  if (lastInvoice === null) return 'neverBilled';
-  const recently = addDays(asOf, -parameters.stoppedBillingDays);
-  return lastInvoice >= recently ? 'billing' : 'stopped';
 }
 
 function renewalOf(contract: Contract, asOf: string): Renewal {

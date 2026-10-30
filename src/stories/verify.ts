@@ -3,6 +3,7 @@
 // reported next to the story, never hidden: the story is shown with its problems.
 
 import type { Note } from '../model/model';
+import { MONTH_NAMES } from '../shared/calendar';
 import type { Fact } from './facts';
 
 export interface Claim {
@@ -106,7 +107,6 @@ function hasNumber(source: Source, number: string): boolean {
   return numbers.includes(number);
 }
 
-const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 const ISO_DATE = /\b\d{4}-\d{2}-\d{2}\b/g;
 const WRITTEN_DATE = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? (?:(\d{1,2}), )?(\d{4})\b/g;
 
@@ -114,7 +114,7 @@ const WRITTEN_DATE = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\
 export function datesIn(text: string): string[] {
   const iso = text.match(ISO_DATE) ?? [];
   const written = [...text.matchAll(WRITTEN_DATE)].map(([, month, day, year]) => {
-    const monthNumber = String(MONTHS.indexOf(month.toLowerCase()) + 1).padStart(2, '0');
+    const monthNumber = String(MONTH_NAMES.indexOf(month) + 1).padStart(2, '0');
     return day ? `${year}-${monthNumber}-${day.padStart(2, '0')}` : `${year}-${monthNumber}`;
   });
   return [...new Set([...iso, ...written])];

@@ -2,9 +2,8 @@
 // note per call, without the customer's other notes or numbers, so every answer can be checked against
 // the note it came from. Putting the notes together is the job of the customer story.
 
-import { generateText, Output } from 'ai';
 import { z } from 'zod';
-import { cached } from '../llm/cache';
+import { ask } from '../llm/ask';
 import type { Llm } from '../llm/provider';
 import type { Note } from '../model/model';
 import { NOTE_TYPES, REASONS, RISK_LEVELS } from './scale';
@@ -63,12 +62,8 @@ export function notePrompt(note: Note): string {
 
 export async function classifyNote(note: Note, llm: Llm, cacheDir: string): Promise<NoteSignal> {
   const prompt = notePrompt(note);
-  const key = { version: NOTE_PROMPT_VERSION, model: llm.modelId, prompt };
-  const answer = await cached(cacheDir, key, async () => {
-    const output = Output.object({ schema: answerSchema });
-    const result = await generateText({ model: llm.model, instructions: INSTRUCTIONS, prompt, output });
-    return result.output;
-  });
+  const question = { version: NOTE_PROMPT_VERSION, instructions: INSTRUCTIONS, prompt, schema: answerSchema };
+  const answer = await ask(llm, cacheDir, question);
   const tidy = tidyAnswer(answer);
   const quoteVerified = checkQuote(tidy, note.text);
   return { noteId: note.id, ...tidy, quoteVerified, model: llm.modelId, promptVersion: NOTE_PROMPT_VERSION };

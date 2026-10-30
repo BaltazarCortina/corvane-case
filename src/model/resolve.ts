@@ -2,6 +2,7 @@
 // first, because a person's decision wins over a rule; then exact and normalized names; then, for
 // the notes only, a unique shortened name.
 
+import { groupBy } from '../shared/collections';
 import { type Assignment, type Assumptions, holds, type Rule } from './assumptions';
 import { hasLegalSuffix, isAllCaps, normalizeName } from './names';
 import type { CrmRecord, ParsedExports } from './parse';
@@ -310,16 +311,6 @@ function checkConfig(
     if (!found.shortenedNames.some((s) => s.name === name)) problems.push(`shortened name ${name} is not in the data`);
   }
   return problems;
-}
-
-function groupBy<T>(items: T[], key: (item: T) => string): Map<string, T[]> {
-  const out = new Map<string, T[]>();
-  for (const item of items) {
-    const k = key(item);
-    const list = out.get(k) ?? [];
-    out.set(k, [...list, item]);
-  }
-  return out;
 }
 
 function addTo(map: Map<string, Set<string>>, key: string, value: string) {

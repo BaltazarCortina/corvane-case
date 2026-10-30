@@ -1,15 +1,16 @@
 // Invariants on the customer stories of the real data. Skipped until `npm run llm` has written them.
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/billing/analyze';
 import { billedInvoices } from '../../src/billing/billing';
+import { build } from '../../src/build';
 import { detectFindings } from '../../src/findings/findings';
 import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
 import type { NoteSignal } from '../../src/risk/notes';
 import { buildWorklist } from '../../src/risk/worklist';
+import { readJson } from '../../src/shared/files';
 import { type CustomerStory, storyInputs } from '../../src/stories/stories';
 import { verifyStory } from '../../src/stories/verify';
 
@@ -17,14 +18,9 @@ const signalsFile = join(paths.llm, 'note-signals.json');
 const storiesFile = join(paths.llm, 'stories.json');
 const ready = existsSync(signalsFile) && existsSync(storiesFile);
 
-const readJson = <T>(file: string): T => {
-  const text = readFileSync(file, 'utf8');
-  return JSON.parse(text);
-};
-
 describe.skipIf(!ready)('the customer stories of the real data', () => {
   const inputs = loadInputs(paths);
-  const built = analyze(inputs);
+  const built = build(inputs);
   const { parameters } = inputs.assumptions;
   const signals = ready ? readJson<NoteSignal[]>(signalsFile) : [];
   const stories = ready ? readJson<CustomerStory[]>(storiesFile) : [];

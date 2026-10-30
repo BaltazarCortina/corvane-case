@@ -1,13 +1,14 @@
 // Invariants on the worklist of the real data. Skipped until `npm run llm` has read the notes.
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/billing/analyze';
+import { build } from '../../src/build';
 import { loadInputs } from '../../src/model/build';
 import { paths } from '../../src/paths';
 import type { NoteSignal } from '../../src/risk/notes';
 import { buildWorklist, type Worklist } from '../../src/risk/worklist';
+import { readJson } from '../../src/shared/files';
 
 const signalsFile = join(paths.llm, 'note-signals.json');
 
@@ -16,9 +17,9 @@ const ESCALATION_NOTES = ['N-5414', 'N-5437', 'N-5597'];
 
 describe.skipIf(!existsSync(signalsFile))('the worklist of the real data', () => {
   const inputs = loadInputs(paths);
-  const { model, billing } = analyze(inputs);
+  const { model, billing } = build(inputs);
   const { parameters } = inputs.assumptions;
-  const signals: NoteSignal[] = existsSync(signalsFile) ? JSON.parse(readFileSync(signalsFile, 'utf8')) : [];
+  const signals = existsSync(signalsFile) ? readJson<NoteSignal[]>(signalsFile) : [];
   const worklist = buildWorklist(model, billing, signals, parameters);
   const groupsOf = (w: Worklist) => w.customers.map((c) => [c.customerId, c.group]);
 

@@ -1,14 +1,14 @@
 // Writes eval/label-sample.csv: a random sample of account notes, with empty columns for a person to
 // label. The group each note was drawn from is left out, so it does not hint at the answer.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { drawSample } from '../src/eval/sample';
 import type { Model } from '../src/model/model';
 import { paths } from '../src/paths';
+import { readJson } from '../src/shared/files';
 
-const modelJson = readFileSync(join(paths.build, 'model.json'), 'utf8');
-const model: Model = JSON.parse(modelJson);
+const model = readJson<Model>(join(paths.build, 'model.json'));
 const sample = drawSample(model.notes);
 
 const header = ['note_id', 'date', 'name_as_written', 'text', 'risk', 'reasons', 'note_type', 'comment'];

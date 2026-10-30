@@ -1,15 +1,15 @@
 // Observations: what the data shows that does not move the numbers. Those with money involved or worth
 // checking with Corvane come first; the rest are informative.
 
-import type { Built } from '../billing/analyze';
-import { type BilledInvoice, billedInvoices, groupBy } from '../billing/billing';
+import { type BilledInvoice, billedInvoices, billingStatus, lastInvoiceOf, totalIn } from '../billing/billing';
+import type { Built } from '../build';
 import type { Inputs } from '../model/build';
-import type { Contract, CustomerRecord } from '../model/model';
-import { addDays, contains, daysIn, monthLabel, overlap, type Period } from '../shared/calendar';
+import { type Contract, type CustomerRecord, currentContractOf } from '../model/model';
+import { daysIn, monthLabel, monthOf, overlap, type Period } from '../shared/calendar';
+import { groupBy } from '../shared/collections';
 import { count, percent, usd } from '../shared/format';
 import { sumMoney } from '../shared/money';
-import { customerNames, type FindingCase, invoiceCase } from './cases';
-import type { Finding } from './findings';
+import { customerNames, type Finding, type FindingCase, invoiceCase } from './cases';
 
 export function observationFindings(inputs: Inputs, built: Built): Finding[] {
   const invoices = billedInvoices(built.model, inputs.assumptions.parameters);
@@ -51,25 +51,23 @@ function customerActivity(invoices: BilledInvoice[], built: Built): Activity {
   const twelveMonths = built.billing.twelveMonths.window.current;
   const billedIn = (customerId: string, period: Period) => {
     const own = byCustomer.get(customerId) ?? [];
-    const inPeriod = own.filter((i) => contains(period, i.date));
-    const amounts = inPeriod.map((i) => i.amount);
-    return sumMoney(amounts);
+    return totalIn(own, period);
   };
   const lastInvoice = new Map<string, string>();
   const lastTwelveMonths = new Map<string, number>();
   for (const [customerId, own] of byCustomer) {
     if (customerId === null) continue;
-    const dates = own.map((i) => i.date).sort();
-    lastInvoice.set(customerId, dates[dates.length - 1]);
+    const last = lastInvoiceOf(own);
+    if (last !== null) lastInvoice.set(customerId, last);
     lastTwelveMonths.set(customerId, billedIn(customerId, twelveMonths));
   }
   return { lastInvoice, lastTwelveMonths, billedIn };
 }
 
 function currentContracts(built: Built): { customer: CustomerRecord; contract: Contract }[] {
-  const contracts = new Map(built.model.contracts.map((c) => [c.id, c]));
+  const contractOf = currentContractOf(built.model);
   const pairs = built.model.customers.map((customer) => {
-    const contract = customer.contractId ? contracts.get(customer.contractId) : undefined;
+    const contract = contractOf(customer);
     return contract ? { customer, contract } : null;
   });
   return pairs.filter((p) => p !== null);
@@ -124,11 +122,12 @@ function contractBillingFindings(inputs: Inputs, built: Built, activity: Activit
 /** Customers still billing on a contract that has ended, with no newer contract on file. */
 function expiredContractsFinding(inputs: Inputs, built: Built, activity: Activity): Finding {
   const { asOf } = built.billing;
-  const recently = addDays(asOf, -inputs.assumptions.parameters.stoppedBillingDays);
+  const { parameters } = inputs.assumptions;
   const cases: FindingCase[] = [];
   for (const { customer, contract } of currentContracts(built)) {
-    const lastInvoice = activity.lastInvoice.get(customer.id);
-    if (contract.end === null || contract.end >= asOf || !lastInvoice || lastInvoice < recently) continue;
+    const lastInvoice = activity.lastInvoice.get(customer.id) ?? null;
+    const status = billingStatus(lastInvoice, asOf, parameters);
+    if (contract.end === null || contract.end >= asOf || status !== 'billing') continue;
     cases.push({
       key: contract.id,
       label: `${customer.name} · ${contract.id}`,
@@ -156,7 +155,7 @@ function systemChangeFinding(built: Built): Finding {
     const before = months[i].total;
     return { month: point.month, change: before === 0 ? 0 : (point.total / before - 1) * 100 };
   });
-  const changeMonth = systemChange.slice(0, 7);
+  const changeMonth = monthOf(systemChange);
   const atChange = moves.find((m) => m.month === changeMonth);
   const others = moves.filter((m) => m.month !== changeMonth).map((m) => m.change);
   if (!atChange) return observation('systemChange', false, 'Billing at the system change', '', []);
@@ -308,12 +307,12 @@ function noAccountManagerFinding(built: Built, activity: Activity): Finding {
 
 /** The CRM status says one thing and billing another. Billing decides; the CRM status is not used. */
 function crmStatusFinding(inputs: Inputs, built: Built, activity: Activity): Finding {
-  const recently = addDays(built.billing.asOf, -inputs.assumptions.parameters.stoppedBillingDays);
+  const { parameters } = inputs.assumptions;
   const cases: FindingCase[] = [];
   for (const customer of built.model.customers) {
     if (customer.crmStatus === null) continue;
-    const lastInvoice = activity.lastInvoice.get(customer.id);
-    const billing = lastInvoice !== undefined && lastInvoice >= recently;
+    const lastInvoice = activity.lastInvoice.get(customer.id) ?? null;
+    const billing = billingStatus(lastInvoice, built.billing.asOf, parameters) === 'billing';
     const crmActive = customer.crmStatus === 'active';
     if (crmActive === billing) continue;
     const said = `CRM says ${customer.crmStatus}`;

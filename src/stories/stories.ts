@@ -3,16 +3,16 @@
 // verifier can check each claim against its sources. Stories are written only for customers in the
 // worklist groups that need one and that have notes to read.
 
-import { generateText, Output } from 'ai';
 import { z } from 'zod';
 import type { BillingAnalysis } from '../billing/analyze';
-import { type BilledInvoice, groupBy } from '../billing/billing';
-import type { Finding } from '../findings/findings';
-import { cached } from '../llm/cache';
+import type { BilledInvoice } from '../billing/billing';
+import type { Finding } from '../findings/cases';
+import { ask } from '../llm/ask';
 import type { Llm } from '../llm/provider';
 import type { Parameters } from '../model/assumptions';
-import type { Model, Note } from '../model/model';
+import { currentContractOf, type Model, type Note } from '../model/model';
 import type { CustomerAssessment, Worklist, WorklistGroup } from '../risk/worklist';
+import { groupBy } from '../shared/collections';
 import { type Fact, storyFacts } from './facts';
 import { type StoryCheck, verifyStory } from './verify';
 
@@ -84,7 +84,7 @@ export function storyInputs(
   parameters: Parameters,
 ): StoryInput[] {
   const customers = new Map(model.customers.map((c) => [c.id, c]));
-  const contracts = new Map(model.contracts.map((c) => [c.id, c]));
+  const contractOf = currentContractOf(model);
   const notesOf = groupBy(model.notes, (n) => n.customerId);
   const invoicesOf = groupBy(invoices, (i) => i.customerId);
   const inputs: StoryInput[] = [];
@@ -93,7 +93,7 @@ export function storyInputs(
     const customer = customers.get(assessment.customerId);
     const needsStory = assessment.group !== null && STORY_GROUPS.includes(assessment.group);
     if (!customer || !needsStory || notes.length === 0) continue;
-    const contract = customer.contractId ? (contracts.get(customer.contractId) ?? null) : null;
+    const contract = contractOf(customer);
     const facts = storyFacts({
       customer,
       assessment,
@@ -119,12 +119,8 @@ export function storyPrompt(input: StoryInput): string {
 
 export async function writeStory(input: StoryInput, llm: Llm, cacheDir: string, asOf: string): Promise<CustomerStory> {
   const prompt = storyPrompt(input);
-  const key = { version: STORY_PROMPT_VERSION, model: llm.modelId, prompt };
-  const answer = await cached(cacheDir, key, async () => {
-    const output = Output.object({ schema: answerSchema });
-    const result = await generateText({ model: llm.model, instructions: INSTRUCTIONS, prompt, output });
-    return result.output;
-  });
+  const question = { version: STORY_PROMPT_VERSION, instructions: INSTRUCTIONS, prompt, schema: answerSchema };
+  const answer = await ask(llm, cacheDir, question);
   const check = verifyStory(answer, input.facts, input.notes);
   return {
     customerId: input.assessment.customerId,

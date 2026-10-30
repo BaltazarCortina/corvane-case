@@ -2,12 +2,12 @@
 // note, the worklist that needs them, and a story for the worklist customers with notes. Answers are
 // cached, so running again only asks about what changed.
 
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { BillingAnalysis } from '../src/billing/analyze';
 import { billedInvoices } from '../src/billing/billing';
-import type { Finding } from '../src/findings/findings';
-import { mapLimit } from '../src/llm/cache';
+import type { Finding } from '../src/findings/cases';
+import { mapLimit } from '../src/llm/ask';
 import { llmFromEnv } from '../src/llm/provider';
 import { loadAssumptions } from '../src/model/assumptions';
 import type { Model } from '../src/model/model';
@@ -15,6 +15,7 @@ import { paths } from '../src/paths';
 import { classifyNote, type NoteSignal } from '../src/risk/notes';
 import { RISK_LEVELS } from '../src/risk/scale';
 import { buildWorklist, WORKLIST_GROUPS, type Worklist } from '../src/risk/worklist';
+import { readJson } from '../src/shared/files';
 import { type CustomerStory, storyInputs, writeStory } from '../src/stories/stories';
 
 const llm = llmFromEnv();
@@ -22,11 +23,6 @@ if (!llm) {
   console.error('Set OPENAI_API_KEY in .env to run the LLM steps (see .env.example).');
   process.exit(1);
 }
-
-const readJson = <T>(file: string): T => {
-  const text = readFileSync(file, 'utf8');
-  return JSON.parse(text);
-};
 
 const model = readJson<Model>(join(paths.build, 'model.json'));
 const billing = readJson<BillingAnalysis>(join(paths.build, 'billing.json'));

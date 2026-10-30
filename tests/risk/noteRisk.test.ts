@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Note } from '../../src/model/model';
-import { worstNoteByCustomer, worstNoteRiskByCustomer } from '../../src/risk/noteRisk';
+import { worstNoteByCustomer } from '../../src/risk/noteRisk';
 import type { NoteSignal } from '../../src/risk/notes';
 
 const note = (id: string, customerId: string | null, date: string): Note => ({
@@ -40,9 +40,7 @@ describe('worstNoteByCustomer', () => {
     const worst = worstNoteByCustomer(notes, signals, period);
     expect(worst.get('C-1')).toEqual({ noteId: 'N-2', date: '2026-05-01', risk: 'medium' });
   });
-});
 
-describe('worstNoteRiskByCustomer', () => {
   it('keeps the highest risk of each customer within the period', () => {
     const notes = [
       note('N-1', 'C-1', '2026-01-01'),
@@ -58,8 +56,9 @@ describe('worstNoteRiskByCustomer', () => {
       signal('N-4', 'none'),
       signal('N-5', 'high'),
     ];
-    const worst = worstNoteRiskByCustomer(notes, signals, period);
-    expect([...worst]).toEqual([
+    const worst = worstNoteByCustomer(notes, signals, period);
+    const risks = [...worst].map(([customerId, note]) => [customerId, note.risk]);
+    expect(risks).toEqual([
       ['C-1', 'medium'],
       ['C-2', 'none'],
     ]);

@@ -2,8 +2,9 @@
 // stopped billing, billed less, billed more, or are new. The steps always add up to the change.
 
 import { contains, type Window } from '../shared/calendar';
+import { groupBy } from '../shared/collections';
 import { sumMoney } from '../shared/money';
-import { type BilledInvoice, groupBy } from './billing';
+import { type BilledInvoice, totalIn } from './billing';
 
 export type BridgeKind = 'stopped' | 'less' | 'more' | 'new';
 
@@ -51,17 +52,17 @@ export function bridge(invoices: BilledInvoice[], window: Window): Bridge {
     const changes = sorted.map((m) => m.change);
     return { kind, change: sumMoney(changes), movers: sorted };
   });
-  const previousAmounts = inWindow.filter((i) => contains(window.previous, i.date)).map((i) => i.amount);
-  const currentAmounts = inWindow.filter((i) => contains(window.current, i.date)).map((i) => i.amount);
-  return { window, previous: sumMoney(previousAmounts), current: sumMoney(currentAmounts), steps };
+  const previous = totalIn(inWindow, window.previous);
+  const current = totalIn(inWindow, window.current);
+  return { window, previous, current, steps };
 }
 
 function moverOf(customerId: string | null, invoices: BilledInvoice[], window: Window): Mover {
-  const previous = periodTotal(invoices, window, 'previous');
-  const current = periodTotal(invoices, window, 'current');
+  const previous = totalIn(invoices, window.previous);
+  const current = totalIn(invoices, window.current);
   const atypical = invoices.filter((i) => i.atypical);
-  const atypicalPrevious = periodTotal(atypical, window, 'previous');
-  const atypicalCurrent = periodTotal(atypical, window, 'current');
+  const atypicalPrevious = totalIn(atypical, window.previous);
+  const atypicalCurrent = totalIn(atypical, window.current);
   return {
     customerId,
     previous,
@@ -69,12 +70,6 @@ function moverOf(customerId: string | null, invoices: BilledInvoice[], window: W
     change: sumMoney([current, -previous]),
     atypicalChange: sumMoney([atypicalCurrent, -atypicalPrevious]),
   };
-}
-
-function periodTotal(invoices: BilledInvoice[], window: Window, side: keyof Window): number {
-  const inPeriod = invoices.filter((i) => contains(window[side], i.date));
-  const amounts = inPeriod.map((i) => i.amount);
-  return sumMoney(amounts);
 }
 
 /**

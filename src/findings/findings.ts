@@ -2,42 +2,18 @@
 // ours that move the numbers, each with its impact; and observations, which do not move the numbers but
 // say what is worth knowing or checking with Corvane.
 
-import { analyze, type Built } from '../billing/analyze';
-import type { Assumptions, Rule } from '../model/assumptions';
+import { type Built, build } from '../build';
+import type { RuleName } from '../model/assumptions';
 import type { Inputs } from '../model/build';
 import type { Invoice } from '../model/model';
 import { monthLabel, monthOf } from '../shared/calendar';
 import { count, percent, usd } from '../shared/format';
 import { sumMoney } from '../shared/money';
-import { customerNames, type FindingCase, invoiceCase } from './cases';
+import { customerNames, type Finding, type FindingCase, type Impact, invoiceCase } from './cases';
 import { observationFindings } from './observations';
 
-export type RuleName = Exclude<keyof Assumptions, 'assignments' | 'parameters'>;
-
-/** A measure as it stands, and as it would be if the rule were reversed. */
-export interface Impact {
-  measure: string;
-  unit: 'percent' | 'count';
-  asConfigured: number | null;
-  ifReversed: number | null;
-}
-
-export interface Finding {
-  id: string;
-  kind: 'assumption' | 'observation';
-  /** Observations worth checking with Corvane come before the informative ones. */
-  worthChecking: boolean;
-  title: string;
-  summary: string;
-  /** For assumptions: the rule in `config/assumptions.yml` behind it. */
-  rule: (Pick<Rule, 'applies' | 'confirmed' | 'basis'> & { name: RuleName }) | null;
-  impact: Impact | null;
-  amount: number | null;
-  cases: FindingCase[];
-}
-
 export function detectFindings(inputs: Inputs, built: Built): Finding[] {
-  const reversedBy = (rule: RuleName) => analyze(withRuleReversed(inputs, rule));
+  const reversedBy = (rule: RuleName) => build(withRuleReversed(inputs, rule));
   const assumptions = [
     invoiceRuleFinding('duplicateInvoices', inputs, built, reversedBy('duplicateInvoices')),
     invoiceRuleFinding('voidedInvoices', inputs, built, reversedBy('voidedInvoices')),
@@ -74,7 +50,9 @@ function halfImpact(built: Built, reversed: Built): Impact {
   };
 }
 
-const INVOICE_RULES: Record<string, { title: string; whatItIs: (n: number, amount: string) => string }> = {
+type InvoiceRule = Extract<RuleName, 'duplicateInvoices' | 'voidedInvoices' | 'creditMemos'>;
+
+const INVOICE_RULES: Record<InvoiceRule, { title: string; whatItIs: (n: number, amount: string) => string }> = {
   duplicateInvoices: {
     title: 'Duplicate invoices',
     whatItIs: (n, amount) =>
@@ -91,7 +69,7 @@ const INVOICE_RULES: Record<string, { title: string; whatItIs: (n: number, amoun
 };
 
 /** An invoice rule: the invoices that would count differently if it were reversed, and what that moves. */
-function invoiceRuleFinding(name: RuleName, inputs: Inputs, built: Built, reversed: Built): Finding {
+function invoiceRuleFinding(name: InvoiceRule, inputs: Inputs, built: Built, reversed: Built): Finding {
   const changed = built.model.invoices.filter(
     (invoice, i) => invoice.excludedBy !== reversed.model.invoices[i].excludedBy,
   );

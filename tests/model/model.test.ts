@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Assumptions } from '../../src/model/assumptions';
-import { build } from '../../src/model/build';
+import { buildModel } from '../../src/model/build';
 import type { RawExports } from '../../src/model/exports';
 import type { Reference } from '../../src/model/reference';
 import { assumptionsWith, exportsWith } from '../fixtures';
@@ -33,7 +33,7 @@ const raw: RawExports = exportsWith({
   notes: ['N-1,Acme Retail,2025-01-01,L. Brennan,All good.', 'N-2,Prospect Co,2025-01-02,L. Brennan,Toured sites.'],
 });
 
-const modelWith = (assumptions: Assumptions = assumptionsWith()) => build({ raw, reference, assumptions });
+const modelWith = (assumptions: Assumptions = assumptionsWith()) => buildModel({ raw, reference, assumptions });
 
 describe('invoices', () => {
   it('keeps every row and marks the first rule that excludes it', () => {

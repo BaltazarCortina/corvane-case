@@ -4,6 +4,7 @@
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { z } from 'zod';
+import { formatIssues } from '../shared/validation';
 
 const spellings = z.record(z.string(), z.array(z.string()));
 
@@ -20,7 +21,7 @@ export type Reference = z.infer<typeof schema>;
 export function parseReference(text: string): Reference {
   const result = schema.safeParse(parse(text));
   if (!result.success) {
-    const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+    const issues = formatIssues(result.error);
     throw new Error(`Invalid reference data: ${issues}`);
   }
   return result.data;

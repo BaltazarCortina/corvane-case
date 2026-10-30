@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { analyze } from '../../src/billing/analyze';
-import { detectFindings, type Finding, withRuleReversed } from '../../src/findings/findings';
+import { build } from '../../src/build';
+import type { Finding } from '../../src/findings/cases';
+import { detectFindings, withRuleReversed } from '../../src/findings/findings';
 import type { Inputs } from '../../src/model/build';
 import type { Reference } from '../../src/model/reference';
 import { assumptionsWith, exportsWith } from '../fixtures';
@@ -37,7 +38,7 @@ const raw = exportsWith({
 });
 
 const inputs: Inputs = { raw, reference, assumptions: assumptionsWith() };
-const findings = detectFindings(inputs, analyze(inputs));
+const findings = detectFindings(inputs, build(inputs));
 const finding = (id: string) => findings.find((f) => f.id === id) as Finding;
 const keys = (id: string) => finding(id)?.cases.map((c) => c.key);
 

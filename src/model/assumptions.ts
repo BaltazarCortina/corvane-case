@@ -5,6 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { z } from 'zod';
+import { formatIssues } from '../shared/validation';
 
 const rule = z.strictObject({
   applies: z.boolean(),
@@ -73,6 +74,8 @@ const schema = z.strictObject({
 
 export type Assumptions = z.infer<typeof schema>;
 export type Rule = z.infer<typeof rule>;
+/** The rules, each a choice that could have gone the other way. */
+export type RuleName = Exclude<keyof Assumptions, 'assignments' | 'parameters'>;
 export type Parameters = z.infer<typeof parameters>;
 export type Assignment = z.infer<typeof assignment>;
 
@@ -88,7 +91,7 @@ export function parseAssumptions(text: string): Assumptions {
   const data = parse(text);
   const result = schema.safeParse(data);
   if (!result.success) {
-    const issues = result.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join('; ');
+    const issues = formatIssues(result.error);
     throw new Error(`Invalid assumptions: ${issues}`);
   }
   return result.data;

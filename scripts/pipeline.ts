@@ -3,14 +3,15 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { analyze } from '../src/billing/analyze';
-import { detectFindings, type Finding } from '../src/findings/findings';
+import { build } from '../src/build';
+import type { Finding } from '../src/findings/cases';
+import { detectFindings } from '../src/findings/findings';
 import { loadInputs } from '../src/model/build';
 import type { Model, Tally } from '../src/model/model';
 import { paths } from '../src/paths';
 
 const inputs = loadInputs(paths);
-const built = analyze(inputs);
+const built = build(inputs);
 const findings = detectFindings(inputs, built);
 
 const outputs = { 'model.json': built.model, 'billing.json': built.billing, 'findings.json': findings };
