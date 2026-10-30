@@ -3,12 +3,14 @@
 
 import { BillingPage } from './billing/BillingPage';
 import { CustomerPanel } from './customer/CustomerPanel';
+import { DataPage } from './data/DataPage';
 import { hrefOf, useRoute } from './route';
 import { WorklistPage } from './worklist/WorklistPage';
 
 const SCREENS = [
   { path: 'billing', label: 'Billing', render: () => <BillingPage /> },
   { path: 'worklist', label: 'Worklist', render: () => <WorklistPage /> },
+  { path: 'data', label: 'Data', render: () => <DataPage /> },
 ];
 
 export function App() {

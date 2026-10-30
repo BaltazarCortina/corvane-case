@@ -16,12 +16,12 @@ parameters:
   actNowRenewalDays: 90
   upcomingRenewalDays: 180
   winBackMonths: 12
-duplicateCustomers: { applies: true, confirmed: false, basis: b }
-shortenedNoteNames: { applies: true, confirmed: false, basis: b }
-duplicateInvoices: { applies: true, confirmed: false, basis: b }
-voidedInvoices: { applies: true, confirmed: false, basis: b }
-creditMemos: { applies: true, confirmed: false, basis: b }
-impossibleContractDates: { applies: true, confirmed: false, basis: b }
+duplicateCustomers: { applies: true, status: open, basis: b }
+shortenedNoteNames: { applies: true, status: open, basis: b }
+duplicateInvoices: { applies: true, status: open, basis: b }
+voidedInvoices: { applies: true, status: open, basis: b }
+creditMemos: { applies: true, status: open, basis: b }
+impossibleContractDates: { applies: true, status: open, basis: b }
 `;
 
 describe('parseAssumptions', () => {
@@ -51,6 +51,12 @@ describe('parseAssumptions', () => {
     );
   });
 
+  it('fails on a status it does not know', () => {
+    expect(() => parseAssumptions(valid.replace('status: open', 'status: maybe'))).toThrow(
+      /duplicateCustomers\.status/,
+    );
+  });
+
   it('fails on a misspelled key instead of ignoring it', () => {
     expect(() => parseAssumptions(valid.replace('basis: b }', 'basis: b, confirmd: true }'))).toThrow(/confirmd/);
   });
@@ -59,7 +65,7 @@ describe('parseAssumptions', () => {
 describe('holds', () => {
   const rule = (applies: boolean, exceptions: string[] = []): Rule => ({
     applies,
-    confirmed: false,
+    status: 'open',
     basis: '',
     exceptions,
   });

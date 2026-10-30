@@ -17,6 +17,7 @@
   --color-up: #2a78d6;
   --color-down: #e34948;
   --color-neutral: #52514e;
+  --color-good: #0ca30c;
   /* Risk levels: status colors for high and medium, blue for low. Always shown with their name. */
   --color-risk-high: #d03b3b;
   --color-risk-medium: #ec835a;

@@ -54,7 +54,7 @@ describe('assumptions', () => {
   it('lists the invoices a rule changes, and what reversing it would do to the headline', () => {
     const duplicates = finding('duplicateInvoices');
     expect(duplicates.cases.map((c) => [c.key, c.amount])).toEqual([['netsuite:NS-2', 500]]);
-    expect(duplicates.rule).toMatchObject({ name: 'duplicateInvoices', applies: true, confirmed: false });
+    expect(duplicates.rule).toMatchObject({ name: 'duplicateInvoices', applies: true, status: 'open' });
     expect(duplicates.impact).toMatchObject({ measure: 'H1 FY27 against H1 FY26', unit: 'percent' });
     expect(duplicates.impact?.ifReversed).not.toBe(duplicates.impact?.asConfigured);
   });
@@ -73,6 +73,10 @@ describe('observations', () => {
 
   it('lists customers still billing after their contract ended', () => {
     expect(keys('expiredContractsStillBilling')).toEqual(['CTR-1']);
+  });
+
+  it('lists customers still billing with no note in the last twelve months', () => {
+    expect(keys('notesCoverage')).toEqual(['C-3']);
   });
 
   it('lists notes linked to no customer', () => {
@@ -116,5 +120,32 @@ describe('contracts that end before they start', () => {
   it('counts a current contract exported twice once', () => {
     expect(dates.impact?.asConfigured).toBe(1);
     expect(dates.impact?.ifReversed).toBe(2);
+  });
+});
+
+describe('contracts billed below their value', () => {
+  // As of 2026-09-30. Neither customer billed in the last twelve months. Acme's contract runs to 2027;
+  // Bolt's ends before it starts, so its end is unknown and whether it should bill cannot be told.
+  const contractInputs: Inputs = {
+    raw: exportsWith({
+      crm: [
+        'C-1,Acme Retail,Retail,Toledo,OH,L. Brennan,2020-01-01,Active',
+        'C-2,Bolt Logistics,Logistics,Toledo,OH,M. Okoro,2020-01-01,Active',
+        'C-3,Crane Inns,Hospitality,Toledo,OH,M. Okoro,2020-01-01,Active',
+      ],
+      netsuite: ['NS-1,C-3,2026-09-30,1000.00,USD,paid,Repair'],
+      contracts: [
+        'CTR-1,C-1,2024-01-01,2027-12-31,50000.0,Monthly,Yes,Gold',
+        'CTR-2,C-2,2025-01-01,2023-12-31,50000.0,Monthly,Yes,Gold',
+      ],
+    }),
+    reference,
+    assumptions: assumptionsWith(),
+  };
+  const contractFindings = detectFindings(contractInputs, build(contractInputs));
+  const under = contractFindings.find((f) => f.id === 'contractsBilledUnder') as Finding;
+
+  it('leaves out a contract whose end is unknown', () => {
+    expect(under.cases.map((c) => c.key)).toEqual(['CTR-1']);
   });
 });

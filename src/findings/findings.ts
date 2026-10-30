@@ -36,8 +36,8 @@ export function withRuleReversed(inputs: Inputs, rule: RuleName): Inputs {
 }
 
 function ruleOf(inputs: Inputs, name: RuleName): Finding['rule'] {
-  const { applies, confirmed, basis } = inputs.assumptions[name];
-  return { name, applies, confirmed, basis };
+  const { applies, status, basis } = inputs.assumptions[name];
+  return { name, applies, status, basis };
 }
 
 function halfImpact(built: Built, reversed: Built): Impact {

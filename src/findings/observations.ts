@@ -23,6 +23,7 @@ export function observationFindings(inputs: Inputs, built: Built): Finding[] {
     unmappedValuesFinding(built),
     memoTranslationFinding(built),
     atypicalInvoicesFinding(built, invoices),
+    notesCoverageFinding(inputs, built, activity),
     noAccountManagerFinding(built, activity),
     crmStatusFinding(inputs, built, activity),
   ];
@@ -76,7 +77,8 @@ function currentContracts(built: Built): { customer: CustomerRecord; contract: C
 /**
  * Contracts billed far below or above their value. A contract's expected billing is its annual value
  * prorated over the part of the last twelve months it was in force; at least three months of it, so a
- * contract that just started is not flagged.
+ * contract that just started is not flagged. A contract whose end is unknown is left out: whether it is
+ * still in force, and so what it should bill, cannot be told.
  */
 function contractBillingFindings(inputs: Inputs, built: Built, activity: Activity): Finding[] {
   const { underBilledContractShare, overBilledContractShare } = inputs.assumptions.parameters;
@@ -84,16 +86,15 @@ function contractBillingFindings(inputs: Inputs, built: Built, activity: Activit
   const under: FindingCase[] = [];
   const over: FindingCase[] = [];
   for (const { customer, contract } of currentContracts(built)) {
-    if (contract.annualValue === null) continue;
-    const inForce = { label: contract.id, start: contract.start, end: contract.end ?? twelveMonths.end };
+    if (contract.annualValue === null || contract.end === null) continue;
+    const inForce = { label: contract.id, start: contract.start, end: contract.end };
     const measured = overlap(inForce, twelveMonths);
     if (!measured || daysIn(measured) < 90) continue;
     const expected = (contract.annualValue * daysIn(measured)) / 365;
     const billed = activity.billedIn(customer.id, measured);
     const share = billed / expected;
     const lastInvoice = activity.lastInvoice.get(customer.id) ?? 'never';
-    const endUnknown = contract.end === null ? ' The contract end is unknown.' : '';
-    const detail = `Billed ${usd(billed)} of ${usd(expected)} expected from ${measured.start} to ${measured.end} (${Math.round(share * 100)}%). Last invoice: ${lastInvoice}.${endUnknown}`;
+    const detail = `Billed ${usd(billed)} of ${usd(expected)} expected from ${measured.start} to ${measured.end} (${Math.round(share * 100)}%). Last invoice: ${lastInvoice}.`;
     const entry = { key: contract.id, label: `${customer.name} · ${contract.id}`, customerId: customer.id, detail };
     if (share < underBilledContractShare) under.push({ ...entry, amount: sumMoney([expected, -billed]) });
     if (share > overBilledContractShare) over.push({ ...entry, amount: sumMoney([billed, -expected]) });
@@ -281,6 +282,45 @@ function atypicalInvoicesFinding(built: Built, invoices: BilledInvoice[]): Findi
     'Atypical invoices',
     `${count(cases.length, 'invoice')} (${usd(total)}) are unusually large for their customer and are not inspection or monitoring. Totals are shown with and without them.`,
     cases,
+    total,
+  );
+}
+
+/**
+ * Customers still billing that have no account note in the last twelve months: their risk comes from
+ * billing alone, so a problem that has not reached billing yet cannot show. The most billing first.
+ */
+function notesCoverageFinding(inputs: Inputs, built: Built, activity: Activity): Finding {
+  const { parameters } = inputs.assumptions;
+  const twelveMonths = built.billing.twelveMonths.window.current;
+  const notesOf = groupBy(built.model.notes, (n) => n.customerId);
+  const billing = built.model.customers.filter((c) => {
+    const lastInvoice = activity.lastInvoice.get(c.id) ?? null;
+    return billingStatus(lastInvoice, built.billing.asOf, parameters) === 'billing';
+  });
+  const cases: FindingCase[] = [];
+  for (const customer of billing) {
+    const notes = notesOf.get(customer.id) ?? [];
+    const dates = notes.map((n) => n.date).sort();
+    const lastNote = dates.at(-1) ?? null;
+    if (lastNote !== null && lastNote >= twelveMonths.start) continue;
+    cases.push({
+      key: customer.id,
+      label: customer.name,
+      customerId: customer.id,
+      amount: activity.lastTwelveMonths.get(customer.id) ?? 0,
+      detail: lastNote ? `Last note on ${lastNote}.` : 'No notes at all.',
+    });
+  }
+  const sorted = cases.sort((a, b) => (b.amount ?? 0) - (a.amount ?? 0));
+  const amounts = sorted.map((c) => c.amount ?? 0);
+  const total = sumMoney(amounts);
+  return observation(
+    'notesCoverage',
+    false,
+    "Customers the notes don't cover",
+    `${count(sorted.length, 'customer')} of the ${billing.length} still billing have no account note in the ${twelveMonths.label}; they billed ${usd(total)} in that time. Their risk comes from billing alone, so a problem that has not reached billing yet does not show.`,
+    sorted,
     total,
   );
 }

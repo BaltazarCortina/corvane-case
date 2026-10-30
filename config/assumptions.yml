@@ -1,8 +1,9 @@
 # Our assumptions: where the data allows more than one reading, the rule we chose and why.
 #
-# Each rule can be turned off with `applies: false`. `confirmed: false` means it is our call and
-# still needs Corvane's answer. `exceptions` lists the keys of single cases where the opposite of
-# the rule holds.
+# Each rule can be turned off with `applies: false`. `status` says where the rule stands: `decided`
+# when it is our call and the evidence is strong enough to hold it without an answer, `open` when it
+# needs Corvane's answer, `confirmed` when Corvane confirmed it. `exceptions` lists the keys of single
+# cases where the opposite of the rule holds.
 
 parameters:
   # An invoice is atypical when its service line is not one of these, it is at least this amount, and
@@ -39,7 +40,7 @@ duplicateCustomers:
   # that share a name but not the location are kept apart as possible duplicates. Case key: the CRM
   # ids joined by "+", e.g. "C-0293+C-0796".
   applies: true
-  confirmed: false
+  status: decided
   basis: >-
     The names only differ in case, punctuation or a legal suffix, the city and state match, and
     NetSuite bills both ids.
@@ -48,7 +49,7 @@ shortenedNoteNames:
   # A note name of two or more words is linked when exactly one customer's name starts with those
   # words ("Kessler Surgical"). Case key: the name as written in the notes.
   applies: true
-  confirmed: false
+  status: decided
   basis: >-
     The shortened name has at least two words and matches the start of exactly one customer's name.
 
@@ -56,7 +57,7 @@ duplicateInvoices:
   # An invoice row identical in every column to an earlier one, invoice number included, is an
   # export error and does not count. Case key: the invoice, e.g. "netsuite:NS-INV-51227".
   applies: true
-  confirmed: false
+  status: decided
   basis: >-
     A second charge would have its own invoice number. The copies carry the same number as the
     original and sit on the line right after it.
@@ -64,21 +65,21 @@ duplicateInvoices:
 voidedInvoices:
   # A voided invoice was cancelled and does not count. Case key: the invoice.
   applies: true
-  confirmed: false
+  status: decided
   basis: The billing system marks it as void.
 
 creditMemos:
   # A credit memo (a negative amount) reduces billing in the month it is issued, since it does not
   # say which invoice it corrects. Case key: the invoice.
   applies: true
-  confirmed: false
+  status: decided
   basis: Billing is reported net of credits. The exports do not link a credit to the invoice it corrects.
 
 impossibleContractDates:
   # A contract that ends before it starts has an unreliable end date, taken as unknown. Turned off,
   # the end date is taken as exported and the contract looks expired. Case key: the contract id.
   applies: true
-  confirmed: false
+  status: open
   basis: >-
     The end falls one or more years before the start, which looks like a mistyped year. The right
     year cannot be told from the data. Asked Corvane.

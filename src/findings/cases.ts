@@ -21,7 +21,7 @@ export interface Finding {
   title: string;
   summary: string;
   /** For assumptions: the rule in `config/assumptions.yml` behind it. */
-  rule: (Pick<Rule, 'applies' | 'confirmed' | 'basis'> & { name: RuleName }) | null;
+  rule: (Pick<Rule, 'applies' | 'status' | 'basis'> & { name: RuleName }) | null;
   impact: Impact | null;
   amount: number | null;
   cases: FindingCase[];

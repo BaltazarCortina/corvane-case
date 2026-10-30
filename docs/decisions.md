@@ -200,9 +200,29 @@ which keeps collection status up to date. QuickBooks statuses stopped changing a
 
 ### Two kinds of finding: assumptions and observations
 
-**Criterion.** An assumption is a choice of ours that moves the numbers; it says whether Corvane
-confirmed it and what reversing it would change. An observation does not move the numbers. Observations
-with money involved, or worth checking with Corvane, come before the informative ones.
+**Criterion.** An assumption is a choice of ours that moves the numbers; it says where it stands and
+what reversing it would change. An observation does not move the numbers. Observations with money
+involved, or worth checking with Corvane, come before the informative ones.
+
+### An assumption is decided, open or confirmed
+
+**Criterion.** Set by `status` in `config/assumptions.yml`. If every assumption waited for Corvane, no
+number could be relied on; so where the evidence is strong, we decide and say so. Decided: duplicate
+invoices (copies with the same invoice number, on the line after the original), voided invoices (the
+billing system marks them), credit memos (billing is reported net of credits), duplicate customers (same
+name and location, billed under one id or the other) and shortened names (one customer only fits). Open,
+because the data cannot settle it: contracts that end before they start, whose right year cannot be told.
+Confirmed is for what Corvane answers. The app shows the decided ones as assumptions, with the evidence
+and what the numbers would be the other way, and the open ones with the questions for Corvane as open
+questions.
+
+### Reading the exports is checked, not the exports themselves
+
+**Mechanical.** Every exported row is either counted or set aside by a named rule, and the QuickBooks rows
+add up to the TOTAL row the export states; NetSuite states no total. That proves nothing was lost or
+invented in reading the files, not that the files are right: there is no independent source, such as
+the general ledger, to compare them with. It is checked by the tests on the real exports and not shown
+in the app, where it would read as more assurance than it gives.
 
 ### The impact of an assumption is measured by reversing it
 
@@ -215,10 +235,10 @@ dates. There is no second copy of the logic that could drift from the first.
 
 **Criterion.** Set by `underBilledContractShare` and `overBilledContractShare` in
 `config/assumptions.yml`. What a contract should bill is its annual value prorated over the part of the
-last twelve months it was in force; a contract whose end is unknown is taken as still in force. Below
-half, it may be work done and not invoiced or a cancellation nobody recorded; above one and a half times,
-work beyond the contract or an outdated value. Contracts in force less than three months in that window
-are left out.
+last twelve months it was in force; a contract whose end is unknown is left out, since whether it is
+still in force cannot be told. Below half, it may be work done and not invoiced or a cancellation nobody
+recorded; above one and a half times, work beyond the contract or an outdated value. Contracts in force
+less than three months in that window are left out.
 
 ### A contract that ended is still billing when invoices keep coming
 
@@ -231,6 +251,13 @@ file: a month-to-month arrangement or a renewal that was not recorded.
 **Criterion.** Billing rose 17% from the last QuickBooks month to the first NetSuite one, which looked
 suspicious. It is flagged only if it is larger than every other month-to-month move in the data; the same
 month a year later rose 25% with no system change.
+
+### The customers the notes do not cover are reported
+
+**Criterion.** A customer still billing with no account note in the last twelve months is listed, with
+what it billed. Its risk level comes from billing alone, so a problem that has not reached billing yet
+cannot show; the list says how much of the business the notes do not see. The stories leave it out:
+they read the notes themselves, with their dates.
 
 ### The CRM status is reported, never used
 

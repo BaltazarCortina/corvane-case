@@ -126,10 +126,15 @@ function comparison(invoices: BilledInvoice[], previous: Period, current: Period
   return `${previous.label} ${usd(billed.previous)}, ${current.label} ${usd(billed.current)} (${variation})`;
 }
 
+/** Findings the story has no use for: it reads the notes themselves, with their dates. */
+const NOT_FOR_THE_STORY = ['notesCoverage'];
+
 /** One fact per data finding about this customer, so the story does not read a data problem as a loss. */
 function findingFacts({ customer, findings }: FactSources): string[] {
   const facts: string[] = [];
-  for (const { finding, cases } of findingsAbout(findings, customer.id)) {
+  const about = findingsAbout(findings, customer.id);
+  const useful = about.filter(({ finding }) => !NOT_FOR_THE_STORY.includes(finding.id));
+  for (const { finding, cases } of useful) {
     const shown = cases.slice(0, CASES_PER_FINDING).map((c) => describeCase(c, customer.name));
     const more = cases.length - shown.length;
     const rest = more > 0 ? `; and ${more} more` : '';

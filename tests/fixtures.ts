@@ -19,7 +19,7 @@ export function exportsWith(lines: Partial<Record<ExportName, string[]>>): RawEx
   return Object.fromEntries(entries);
 }
 
-/** Every rule applied, unconfirmed and without exceptions, unless overridden. */
+/** Every rule applied, open and without exceptions, unless overridden. */
 export function assumptionsWith(
   overrides: Partial<Record<RuleName, Partial<Rule>>> & {
     assignments?: Assignment[];
@@ -28,7 +28,7 @@ export function assumptionsWith(
 ): Assumptions {
   const rule = (name: RuleName): Rule => ({
     applies: true,
-    confirmed: false,
+    status: 'open',
     basis: '',
     exceptions: [],
     ...overrides[name],

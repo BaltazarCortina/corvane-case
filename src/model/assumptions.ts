@@ -1,5 +1,5 @@
-// Reads config/assumptions.yml: the rules we chose where the data allows more than one reading,
-// whether Corvane confirmed them, and the cases a person decided by hand. A value the code does not
+// Reads config/assumptions.yml: the rules we chose where the data allows more than one reading, where
+// each stands (decided by us, open for Corvane, or confirmed), and the cases a person decided by hand. A value the code does not
 // know fails with its exact path instead of falling back to a default.
 
 import { readFileSync } from 'node:fs';
@@ -7,9 +7,12 @@ import { parse } from 'yaml';
 import { z } from 'zod';
 import { formatIssues } from '../shared/validation';
 
+/** Decided: our call, held on strong evidence. Open: needs Corvane's answer. Confirmed: Corvane confirmed it. */
+export const RULE_STATUSES = ['decided', 'open', 'confirmed'] as const;
+
 const rule = z.strictObject({
   applies: z.boolean(),
-  confirmed: z.boolean(),
+  status: z.enum(RULE_STATUSES),
   basis: z.string(),
   /** Keys of the cases where the opposite of the rule holds. */
   exceptions: z.array(z.string()).default([]),

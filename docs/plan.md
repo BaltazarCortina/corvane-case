@@ -112,7 +112,7 @@ for lint and format.
 | 11 | Customer stories | LLM story per worklist customer, with a citation verifier | Done |
 | 12 | API, app shell, billing screen | Server, React layout, the billing screen | Done |
 | 13 | Worklist and customer panel | The worklist and the customer detail | Done |
-| 14 | Data screen | Data health, reconciliation and AI checks | |
+| 14 | Data screen | Where the numbers hold, open questions and assumptions | Done |
 | 15 | Summary screen | The three answers on one screen | |
 | 16 | Fine-tuning | Manual assignments and exceptions for single cases | |
 | 17 | README | How to run it, how it works, AI tools used, next steps | |
@@ -207,7 +207,8 @@ to the change between the two periods.
 
 - Generic detectors, each producing a group of cases with a business-language summary. Two kinds,
   depending on whether they move the numbers:
-  - **Assumptions** move them: a criterion we chose, with its impact and whether Corvane confirmed it
+  - **Assumptions** move them: a criterion we chose, with its impact and where it stands (decided by us,
+    open for Corvane, or confirmed)
     (duplicate invoices, voided invoices, credit memos, duplicate customers, shortened names,
     assignments, impossible contract dates).
   - **Observations** do not. Those with money involved or worth checking with Corvane come first:
@@ -313,18 +314,18 @@ reads as medium (stage 9) do not change any customer's group.
 
 ### 14. Data screen
 
-- Status first: do the exports reconcile, how many assumptions await confirmation, the date of the data.
-- Pending with Corvane: unconfirmed assumptions with their impact.
-- The reconciliation from the exports to the numbers in the app.
-- Observations: those worth checking first, the informative ones collapsed. Notes linked to no customer
-  are split into prospects (by the note type the LLM reads in stage 8) and names still to resolve, each
-  with its risk level. Definitions, including the note risk scale.
+- Highlights first: what can be relied on and where the data may be wrong.
+- Open questions, in one list: the open assumptions with what they would change, and the observations
+  worth checking. Assumptions, the ones decided on the evidence, apart. Notes linked to no customer are
+  split into prospects (by the note type the LLM reads in stage 8) and names still to resolve, each with
+  its risk level.
+- Other findings: the informative observations, collapsed.
 - The money a customer's case involves (expired contracts still billing, customers without an account
   manager) is its amount at stake, the same the worklist shows. Today the findings use the billing of the
   last twelve months, which matches it except for customers that stopped billing, where it undersells
   them (two cases: $11k instead of $220k, $150k instead of $221k). The amount at stake moves to
   `src/billing/` and both use it; only those amounts in `findings.json` change.
-- How the AI was checked: evaluation scores, quote and story verification results.
+- How the AI was checked stays out of the app: it is for the technical discussion, from `npm run eval`.
 
 ### 15. Summary screen
 
@@ -353,7 +354,7 @@ reads as medium (stage 9) do not change any customer's group.
 - A support check on customer stories: one LLM call per story that reviews each claim against the
   sources it cites.
 - A simple period selector on the billing screen (quarter, half, fiscal year).
-- Token usage recorded per LLM call and shown with the AI checks.
+- Token usage recorded per LLM call and reported by the LLM step.
 - A full customer list.
 
 **Further iterations,** not built in this prototype:
@@ -631,3 +632,32 @@ Outcome: Act now holds 14 customers and $5.2M at stake, 5 of them at high risk; 
 plus 19 healthy auto-renewals hidden; Monitor 28 to $5.4M; Win back 12 to $3.7M. The notes at risk give
 service problems and a competitor for 9 customers each, price for 5, billing disputes for 4 and other
 reasons for 2.
+
+### 14. Data screen
+
+Assumptions now have a status instead of a yes or no on confirmation: decided, when the evidence is
+strong enough for us to hold it, open, when only Corvane can settle it, or confirmed. Duplicate invoices,
+voided invoices, credit memos, duplicate customers and shortened names are decided; contracts that end
+before they start stay open. A contract whose end is unknown is no longer checked against its value,
+since whether it is in force cannot be told, and a new observation lists the customers still billing with
+no account note in the last twelve months, whose risk comes from billing alone. The data screen leads
+with highlights, where the numbers can be relied on and where the data may be wrong: billing that counts
+what is real, account notes that reach their customer, contracts under their value and the customers
+without notes, each in a number and a line; each opens its row below. Open questions is one list, the
+open assumptions and the questions for Corvane, those that move the billing figures first and then the
+most money; the assumptions decided on the evidence follow, each with the evidence and what the numbers
+would be the other way. Closed, each row says only what it is, whether it is our assumption or a
+question, how many cases and what it changes; open, it says the rest and lists its cases, the customer
+apart from the item, the largest amounts first, and a case that belongs to a customer opens the customer.
+Notes linked to no customer open split into names to resolve and prospects, with their risk. Other
+findings, the informative observations, close the screen. The reconciliation of the exports stays in the
+tests: it proves the files were read without losing a row, not that they are right, and on screen it
+would read as more than that. The evaluation of the AI is not in the app.
+
+Outcome: $1.9M set aside from billing (45 exact copies, $801k, and 67 voided invoices, $1.1M); 259 of 263
+notes (98%) reach their customer, the other 4 being 3 prospects and one name that fits two customers; 8
+contracts billed $1.3M below their value, one fewer than before, since the contract whose end is unknown
+is left out; 66 of the 146 customers still billing ($12.4M in twelve months) have no account note in that
+time. Five items are open questions, and five are assumptions decided on the evidence: duplicate invoices
+(the half at −3.0% instead of −6.8% the other way), voided invoices (−6.2%), credit memos (−6.5%),
+duplicate customers and shortened names.
